@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Watch Party</title>
+</head>
+<body>
+    <video id="videoPlayer" width="600" controls>
+        <source id="videoSource" src="https://stream.365ar.show:8089/55e2b1ba-20de-45fd-ad63-dcc9b5a9427d/KHIGF1F1cM8Ewxr/BETCZrsx7GDETvA_1080.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.1.4/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <script>
+        const videoPlayer = document.getElementById('videoPlayer');
+        const videoSource = document.getElementById('videoSource');
+        // const videoId = [[`${videoId}`]];
+        // videoSource.src = `http://localhost:8080/videos/${videoId}`;
+
+        const socket = new SockJS('/ws');
+        const stompClient = Stomp.over(socket);
+        let lastEventTime = 0;
+
+        stompClient.connect({}, () => {
+            console.log('Connected');
+
+            stompClient.subscribe(`/topic/watch-party.a6778d89-d064-4059-a04d-fe22bfad07a0`, (message) => {
+                const syncMessage = JSON.parse(message.body);
+                // videoId=syncMessage.videoUrl;
+                // videoSource.src = `/videos/4ef14103-0e89-4585-adc3-0934d0efead4.mp4`;
+                handleVideoEvent(syncMessage);
+            });
+
+            videoPlayer.addEventListener('play', sendVideoEvent);
+            videoPlayer.addEventListener('pause', sendVideoEvent);
+            videoPlayer.addEventListener('seeked', sendVideoEvent);
+        });
+
+        function sendVideoEvent(event) {
+            const currentTime = Date.now();
+            if (currentTime - lastEventTime < 500) {
+                return;
+            }
+            lastEventTime = currentTime;
+
+            const syncMessage = {
+                event: event.type,
+                currentTime: videoPlayer.currentTime
+            };
+            stompClient.send(`/app/watch-parties/a6778d89-d064-4059-a04d-fe22bfad07a0`, {}, JSON.stringify(syncMessage));
+        }
+
+        function handleVideoEvent(syncMessage) {
+            switch (syncMessage.event) {
+                case 'play':
+                    videoPlayer.currentTime = syncMessage.currentTime;
+                    videoPlayer.play();
+                    break;
+                case 'pause':
+                    videoPlayer.currentTime = syncMessage.currentTime;
+                    videoPlayer.pause();
+                    break;
+                case 'seeked':
+                    videoPlayer.currentTime = syncMessage.currentTime;
+                    videoPlayer.play();
+                    break;
+            }
+        }
+    </script>
+</body>
+</html>

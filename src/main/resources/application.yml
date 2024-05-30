@@ -1,0 +1,21 @@
+spring:
+  mvc:
+    view:
+      suffix: .html
+  datasource:
+    url: jdbc:mysql://localhost:3306/streaming_app_using_springweb_db
+    username: root
+    password: password
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    
+
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
+#logging:
+#  file:
+#    path: ./logs

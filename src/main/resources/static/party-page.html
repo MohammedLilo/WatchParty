@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Watch Party</title>
+<link
+	href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
+	rel="stylesheet">
+
+<style>
+body {
+	font-family: 'Roboto', sans-serif;
+	background: #2c3e50;
+	color: #ecf0f1;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	flex-direction: column;
+	height: 100vh;
+	margin: 0;
+	padding: 20px;
+	box-sizing: border-box;
+	overflow-y: auto; /* Ensure body can scroll */
+}
+
+h1 {
+	font-size: 3em;
+	margin-bottom: 30px;
+	color: #e74c3c;
+	text-transform: uppercase;
+	letter-spacing: 2px;
+	text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+#formContainer {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 20px;
+	width: 100%;
+	max-width: 600px;
+}
+
+form {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	background: rgba(255, 255, 255, 0.1);
+	padding: 20px;
+	border-radius: 10px;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+	backdrop-filter: blur(10px);
+	width: 100%;
+}
+
+input[type="url"], input[type="text"] {
+	padding: 12px 20px;
+	font-size: 16px;
+	border: none;
+	border-radius: 5px;
+	width: 100%;
+	margin-bottom: 15px;
+	background-color: #34495e;
+	color: #ffffff;
+	box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+input[type="url"]::placeholder, input[type="text"]::placeholder {
+	color: #7f8c8d;
+}
+
+button {
+	padding: 12px 20px;
+	font-size: 16px;
+	color: #ffffff;
+	background: linear-gradient(135deg, #e74c3c, #c0392b);
+	border: none;
+	border-radius: 5px;
+	cursor: pointer;
+	transition: background 0.3s ease, transform 0.2s ease;
+}
+
+button:hover {
+	background: linear-gradient(135deg, #c0392b, #e74c3c);
+	transform: translateY(-2px);
+}
+
+button:active {
+	transform: translateY(0);
+}
+
+.party-id-container {
+	display: flex;
+	align-items: center;
+	margin-top: 20px;
+	background-color: #34495e;
+	padding: 10px;
+	border-radius: 4px;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.party-id {
+	font-size: 1.2em;
+	margin-right: 10px;
+}
+
+.copy-button {
+	padding: 5px 10px;
+	font-size: 16px;
+	color: #ecf0f1;
+	background-color: #e74c3c;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+	transition: background-color 0.3s ease;
+}
+
+.copy-button:hover {
+	background-color: #c0392b;
+}
+
+.main-content {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	width: 100%;
+	max-width: 800px;
+}
+
+video {
+	width: 100%;
+	border: 2px solid #34495e;
+	border-radius: 10px;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+	margin-top: 20px;
+}
+
+.chat-container {
+	margin-top: 20px;
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	background-color: #34495e;
+	padding: 20px;
+	border-radius: 8px;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.chat-messages {
+	height: 200px;
+	overflow-y: auto;
+	margin-bottom: 10px;
+	padding: 10px;
+	background-color: #2c3e50;
+	border-radius: 4px;
+	box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.chat-input {
+	display: flex;
+}
+
+.chat-input input {
+	flex: 1;
+	padding: 10px;
+	font-size: 16px;
+	border: none;
+	border-radius: 4px;
+	margin-right: 10px;
+	background-color: #34495e;
+	color: #ffffff;
+	box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.chat-input button {
+	padding: 10px 20px;
+	font-size: 16px;
+	color: #ecf0f1;
+	background-color: #e74c3c;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+	transition: background-color 0.3s ease;
+}
+
+.chat-input button:hover {
+	background-color: #c0392b;
+}
+</style>
+</head>
+<body>
+	<h1>Watch Party</h1>
+	<h1>Watch Party</h1>
+	<h1>Watch Party</h1>
+	<h1>Watch Party</h1>
+
+	<div id="formContainer">
+		<form id="startPartyForm">
+			<input type="url" id="videoUrl"
+				placeholder="Enter video URL to watch as a party" required>
+			<button type="submit">Start Party</button>
+		</form>
+		<form id="joinPartyForm">
+			<input type="text" id="partyId" placeholder="Enter party ID to join"
+				required>
+			<button type="submit">Join Party</button>
+		</form>
+	</div>
+	<div class="party-id-container">
+		<div id="partyIdDisplay" class="party-id"></div>
+		<button class="copy-button" onclick="copyPartyId()">Copy ID</button>
+	</div>
+	<div class="main-content">
+		<video id="videoPlayer" controls>
+			<source id="videoSource" src="" type="video/mp4">
+			Your browser does not support the video tag.
+		</video>
+		<div class="chat-container">
+			<div class="chat-messages" id="chatMessages"></div>
+			<div class="chat-input">
+				<input type="text" id="chatInput" placeholder="Type your message">
+				<button id="sendMessageButton">Send</button>
+			</div>
+		</div>
+	</div>
+
+	<script
+		src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.1.4/sockjs.min.js"></script>
+	<script
+		src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+	<script>
+    let userEmail = '';
+    let userName = '';
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        try {
+            const response = await fetch('/user-info');
+            if (response.ok) {
+                const data = await response.json();
+                userEmail = data.email;
+                userName = data.name;
+                console.log(`User Email: ${userEmail}, User Name: ${userName}`);
+            } else {
+                console.error('Failed to fetch user info');
+            }
+        } catch (error) {
+            console.error('Error fetching user info:', error);
+        }
+    });
+    window.addEventListener('beforeunload', async (event) => {
+        try {
+            await fetch('/watch-parties', { method: 'DELETE' });
+        } catch (error) {
+            console.error('Error leaving watch party:', error);
+        }
+    });
+    const videoPlayer = document.getElementById('videoPlayer');
+    const videoSource = document.getElementById('videoSource');
+    const startPartyForm = document.getElementById('startPartyForm');
+    const joinPartyForm = document.getElementById('joinPartyForm');
+    const videoUrlInput = document.getElementById('videoUrl');
+    const partyIdInput = document.getElementById('partyId');
+    const partyIdDisplay = document.getElementById('partyIdDisplay');
+    const chatMessages = document.getElementById('chatMessages');
+    const chatInput = document.getElementById('chatInput');
+    const sendMessageButton = document.getElementById('sendMessageButton');
+    let stompClient;
+    let lastEventTime = 0;
+    let currentPartyId;
+    let isGuest=false;
+
+    startPartyForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const videoUrl = videoUrlInput.value;
+        videoSource.src = videoUrl;
+        videoPlayer.load();
+        
+        try {
+            const response = await fetch('/watch-parties', { method: 'POST' });
+            if (response.ok) {
+                const partyId = await response.text();
+                currentPartyId = partyId;
+                displayPartyId(partyId);
+                connectWebSocket(partyId, videoUrl,false);
+            } else {
+                console.error('Failed to create watch party');
+            }
+        } catch (error) {
+            console.error('Error creating watch party:', error);
+        }
+    });
+
+    joinPartyForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const partyId = partyIdInput.value;
+        isGuest=true;
+        try {
+            const response = await fetch(`/watch-parties/${partyId}`);
+            if (response.ok) {
+             //   const videoUrl = await response.text(); // Get video URL from the response
+              //  videoSource.src = videoUrl;
+              //  videoPlayer.load();
+                currentPartyId = partyId;
+                displayPartyId(partyId);
+                console.log('before connecting to websocket '+videoUrl);
+                connectWebSocket(partyId, videoUrl);
+            } else {
+                console.error('Failed to join watch party');
+            }
+        } catch (error) {
+            console.error('Error joining watch party:', error);
+        }
+    });
+
+    sendMessageButton.addEventListener('click', sendMessage);
+
+    chatInput.addEventListener('keypress', (event) => {
+        if (event.key === 'Enter') {
+            sendMessage();
+            event.preventDefault();  // Prevent the default action (form submission)
+        }
+    });
+    
+    function displayPartyId(partyId) {
+        partyIdDisplay.textContent = `Party ID: ${partyId}`;
+    }
+
+    function connectWebSocket(partyId, videoUrl) {
+        const socket = new SockJS('/ws');
+        stompClient = Stomp.over(socket);
+
+        stompClient.connect({}, () => {
+            console.log('Connected');
+
+            stompClient.subscribe(`/topic/watch-party.${partyId}`, (message) => {
+                const syncMessage = JSON.parse(message.body);
+                if(!syncMessage.event){
+                    const playEvent = new Event('play');
+                    console.log('dispatching event');
+                    videoPlayer.dispatchEvent(playEvent);
+                    return;
+                }
+                handleVideoEvent(syncMessage);
+            });
+
+            stompClient.subscribe(`/topic/chat.${partyId}`, (message) => {
+                const chatMessage = JSON.parse(message.body);
+                displayChatMessage(chatMessage);
+            });
+
+            videoPlayer.addEventListener('play', sendVideoEvent);
+            videoPlayer.addEventListener('pause', sendVideoEvent);
+            videoPlayer.addEventListener('seeked', sendVideoEvent);
+            
+			if(isGuest){
+				return;
+				}
+            // Send initial video URL to the party
+            sendVideoUrl(partyId, videoUrl);
+        });
+    }
+
+    function sendVideoEvent(event) {
+        const currentTime = Date.now();
+     
+     if (currentTime - lastEventTime < 1000) {  // Ensuring a minimum of 0.5 second between requests
+           return;
+      }
+     
+       lastEventTime = currentTime;
+        const syncMessage = {
+            event: event.type,
+            currentTime: videoPlayer.currentTime,
+            videoUrl: videoSource.src
+        };
+        stompClient.send(`/app/watch-parties/${currentPartyId}`, {}, JSON.stringify(syncMessage));
+    }
+
+    function sendVideoUrl(partyId, videoUrl) {
+        const syncMessage = {
+            event: 'url',
+            videoUrl: videoUrl
+        };
+        stompClient.send(`/app/watch-parties/${partyId}`, {}, JSON.stringify(syncMessage));
+    }
+
+    function sendMessage() {
+        const messageContent = chatInput.value.trim();
+        if (messageContent && stompClient) {
+            const chatMessage = {
+                content: messageContent,
+                senderName: userName || 'User' // Use the user's name if available
+            };
+            stompClient.send(`/app/watch-party-chats/${currentPartyId}`, {}, JSON.stringify(chatMessage));
+            chatInput.value = '';
+        }
+    }
+
+    function displayChatMessage(message) {
+        const messageElement = document.createElement('div');
+        messageElement.textContent = `${message.senderName}: ${message.content}`;
+        chatMessages.appendChild(messageElement);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function handleVideoEvent(syncMessage) {
+    	if(isGuest){
+            isGuest=false;
+            videoSource.src = syncMessage.videoUrl;
+	        videoPlayer.load();
+            videoPlayer.currentTime = syncMessage.currentTime;
+            videoPlayer.play();
+	        return;
+        }
+        switch (syncMessage.event) {
+            case 'play':
+                videoPlayer.currentTime = syncMessage.currentTime;
+                videoPlayer.play();
+                break;
+            case 'pause':
+                videoPlayer.currentTime = syncMessage.currentTime;
+                videoPlayer.pause();
+                break;
+            case 'seeked':
+                videoPlayer.currentTime = syncMessage.currentTime;
+                videoPlayer.play();
+                break;
+            case 'url':
+                videoSource.src = syncMessage.videoUrl;
+                videoPlayer.load();
+                break;
+        }
+    }
+    
+    function copyPartyId() {
+        const partyIdText = partyIdDisplay.textContent.split(': ')[1];
+        navigator.clipboard.writeText(partyIdText).then(() => {
+        //    alert('Party ID copied to clipboard!');
+        }).catch(err => {
+            console.error('Error copying Party ID: ', err);
+        });
+    }
+</script>
+
+</body>
+</html>
