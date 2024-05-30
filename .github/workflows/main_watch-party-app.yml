@@ -4,7 +4,7 @@
 name: Build and deploy JAR app to Azure Web App - watch-party-app
 env:  
   APP_CONFIGURATION_CONNECTION_STRING: ${{secrets.APP_CONFIGURATION_CONNECTION_STRING}}
-on:
+on: 
   push:
     branches:
       - main
