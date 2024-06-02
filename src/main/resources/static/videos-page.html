@@ -129,6 +129,10 @@
     <div id="notification"></div>
 
     <script>
+        let currentPage = 0;
+        const pageSize = 6;
+        let loading = false;
+
         function showNotification(message, type) {
             const notification = document.getElementById('notification');
             notification.textContent = message;
@@ -157,28 +161,33 @@
                 method: 'POST',
                 body: formData
             }).then(response => {
-                console.log('Response status:', response.status);
                 if (response.ok) {
                     return response.text();
                 } else {
                     throw new Error('Failed to upload video.');
                 }
             }).then(data => {
-                console.log('Response data:', data);
                 showNotification('Video uploaded successfully!', 'success');
-                loadVideos(); // Reload videos after upload
+                loadVideos(true); // Reload videos after upload
             }).catch(error => {
                 console.error('Error uploading video:', error);
                 showNotification('Error uploading video.', 'error');
             });
         });
 
-        function loadVideos() {
-            fetch('/videos')
+        function loadVideos(reset = false) {
+            if (loading) return;
+            loading = true;
+
+            if (reset) {
+                currentPage = 0;
+                document.querySelector('.video-list').innerHTML = '';
+            }
+
+            fetch(`/videos?page=${currentPage}&size=${pageSize}`)
                 .then(response => response.json())
                 .then(data => {
                     const container = document.querySelector('.video-list');
-                    container.innerHTML = ''; // Clear existing items
                     data.content.forEach(video => {
                         const videoItem = document.createElement('div');
                         videoItem.className = 'video-item';
@@ -199,7 +208,16 @@
                         container.appendChild(videoItem);
                         extractThumbnail(videoItem.querySelector('video'));
                     });
-                }).catch(error => console.error('Error loading videos:', error));
+
+                    if (data.content.length > 0) {
+                        currentPage++;
+                    }
+
+                    loading = false;
+                }).catch(error => {
+                    console.error('Error loading videos:', error);
+                    loading = false;
+                });
         }
 
         function extractThumbnail(video) {
@@ -233,7 +251,7 @@
                         document.getElementById('mainVideoContainer').style.display = 'none';
                     }
                     showNotification('Video deleted successfully!', 'success');
-                    loadVideos(); // Reload videos after deletion
+                    loadVideos(true); // Reload videos after deletion
                 } else {
                     showNotification('Failed to delete video.', 'error');
                 }
@@ -253,6 +271,15 @@
             mainVideoContainer.style.display = 'flex';
             mainVideo.play();
         }
+
+        function handleScroll() {
+            const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+            if (scrollTop + clientHeight >= scrollHeight - 5) {
+                loadVideos();
+            }
+        }
+
+        window.addEventListener('scroll', handleScroll);
 
         loadVideos(); // Initial load of videos
     </script>

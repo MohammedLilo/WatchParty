@@ -41,9 +41,9 @@ public class VideoController {
 
 	@GetMapping(value = "/videos")
 	public ResponseEntity<Page<Video>> listVideos(@RequestParam(name = "page", defaultValue = "0") int pageNumber,
-			@RequestParam(name = "size", defaultValue = "10") int size) {
+			@RequestParam(name = "size", defaultValue = "6") int size,@RequestParam(name="sortBy",defaultValue = "timestamp")String sortBy) {
 
-		return ResponseEntity.ok(videoService.findAll(pageNumber, size, Sort.by(Order.desc("timestamp"))));
+		return ResponseEntity.ok(videoService.findAll(pageNumber, size, Sort.by(Order.desc(sortBy))));
 	}
 
 	@PostMapping("/videos")
