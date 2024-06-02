@@ -53,12 +53,11 @@ public class VideoController {
 		videoService.save(multipartFile, user.getId(),videoName);
 
 		return ResponseEntity.status(HttpStatus.CREATED)
-//				.header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"video.mp4\"")
 				.body("video uploaded successfully.");
 	}
 
 	@DeleteMapping("/videos/{file-name}")
-	public ResponseEntity<String> getMethodName(@PathVariable("file-name") String videoFileName, Authentication authentication) {
+	public ResponseEntity<String> deleteVideo(@PathVariable("file-name") String videoFileName, Authentication authentication) {
 		User user = userService.findByEmail(authentication.getName());
 		Video video = videoService.findByVideoFileName(videoFileName);
 		if (video == null || user.getId() != video.getUserId()) {

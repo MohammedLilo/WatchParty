@@ -1,96 +1,113 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video Library</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Roboto', sans-serif;
-            background: #2c3e50;
-            color: #ecf0f1;
-            padding: 20px;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Video Library</title>
+<link
+	href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
+	rel="stylesheet">
+<style>
+body {
+	font-family: 'Roboto', sans-serif;
+	background: #2c3e50;
+	color: #ecf0f1;
+	padding: 20px;
+	margin: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
 
-        h1 {
-            color: #e74c3c;
-            margin: 20px 0;
-        }
+h1 {
+	color: #e74c3c;
+	margin: 20px 0;
+}
 
-        .video-list {
-            width: 100%;
-            max-width: 800px;
-            margin-top: 20px;
-        }
+.main-video {
+	width: 100%;
+	max-width: 800px;
+	margin-bottom: 20px;
+	display: none;
+	flex-direction: column;
+	align-items: center;
+}
 
-        .video-item {
-            background: #34495e;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
+.video-list {
+	width: 100%;
+	max-width: 800px;
+	margin-top: 20px;
+}
 
-        .video-item img {
-            width: 100%;
-            max-width: 120px;
-            height: 90px;
-            object-fit: cover;
-            border-radius: 5px;
-        }
+.video-item {
+	background: #34495e;
+	padding: 10px;
+	border-radius: 5px;
+	margin-bottom: 10px;
+	display: flex;
+	align-items: center;
+	gap: 15px;
+	cursor: pointer;
+}
 
-        .video-description {
-            flex-grow: 1;
-        }
+.video-item img {
+	width: 100%;
+	max-width: 120px;
+	height: 90px;
+	object-fit: cover;
+	border-radius: 5px;
+}
 
-        .controls {
-            display: flex;
-            gap: 10px;
-        }
+.video-description {
+	flex-grow: 1;
+}
 
-        button, input[type="file"] {
-            padding: 8px 12px;
-            border: none;
-            border-radius: 5px;
-            background: #e74c3c;
-            color: #ffffff;
-            cursor: pointer;
-            transition: background 0.2s ease;
-        }
+.controls {
+	display: flex;
+	gap: 10px;
+}
 
-        button:hover, input[type="file"]:hover {
-            background: #c0392b;
-        }
+button, input[type="file"] {
+	padding: 8px 12px;
+	border: none;
+	border-radius: 5px;
+	background: #e74c3c;
+	color: #ffffff;
+	cursor: pointer;
+	transition: background 0.2s ease;
+}
 
-        @media (max-width: 600px) {
-            .video-item {
-                flex-direction: column;
-                align-items: start;
-            }
+button:hover, input[type="file"]:hover {
+	background: #c0392b;
+}
 
-            .video-item img {
-                width: calc(100% - 20px); /* Subtracting padding */
-            }
-        }
-    </style>
+@media ( max-width : 600px) {
+	.video-item {
+		flex-direction: column;
+		align-items: start;
+	}
+	.video-item img {
+		width: calc(100% - 20px); /* Subtracting padding */
+	}
+}
+</style>
 </head>
 <body>
-    <h1>Video Library</h1>
-    <div class="video-list"></div>
-    <form id="uploadForm">
-    <input type="file" id="videoFile" required>
-    <input type="text" id="videoName" placeholder="Enter video name" required>
-    <button type="submit">Upload Video</button>
-</form>
+	<h1>Video Library</h1>
+	<div class="main-video" id="mainVideoContainer">
+		<video id="mainVideo" width="100%" controls>
+			<source id="mainVideoSource" src="" type="video/mp4">
+			Your browser does not support the video tag.
+		</video>
+	</div>
+	<div class="video-list"></div>
+	<form id="uploadForm">
+		<input type="file" id="videoFile" required> <input type="text"
+			id="videoName" placeholder="Enter video name" required>
+		<button type="submit">Upload Video</button>
+	</form>
 
-    <script>
+	<script>
     document.getElementById('uploadForm').addEventListener('submit', function(event) {
         event.preventDefault();
         const formData = new FormData();
@@ -109,13 +126,14 @@
             method: 'POST',
             body: formData
         }).then(response => {
+            console.log('Response status:', response.status);
             if (response.ok) {
                 return response.json();
             } else {
                 throw new Error('Failed to upload video.');
             }
         }).then(data => {
-            console.log(data);
+            console.log('Response data:', data);
             alert('Video uploaded successfully!');
             loadVideos(); // Reload videos after upload
         }).catch(error => {
@@ -139,13 +157,14 @@
                             Your browser does not support the video tag.
                         </video>
                         <div class="video-description">
-                            <h3>${video.name}</h3>
+                            <h3>${video.videoName}</h3>
                             <p>${new Date(video.timestamp).toLocaleDateString()}</p>
                         </div>
                         <div class="controls">
-                            <button onclick="deleteVideo('${video.fileName}')">Delete</button>
+                            <button onclick="deleteVideo('${video.videoFileName}', event)">Delete</button>
                         </div>
                     `;
+                    videoItem.addEventListener('click', () => playVideoAtTop(video.videoFileName));
                     container.appendChild(videoItem);
                     extractThumbnail(videoItem.querySelector('video'));
                 });
@@ -167,11 +186,21 @@
         });
     }
 
-    function deleteVideo(videoFileName) {
+    function deleteVideo(videoFileName, event) {
+        event.stopPropagation();
         fetch(`/videos/${videoFileName}`, {
             method: 'DELETE'
         }).then(response => {
             if (response.ok) {
+                // Stop the main video if it is the one being deleted
+                const mainVideo = document.getElementById('mainVideo');
+                const mainVideoSource = document.getElementById('mainVideoSource');
+                if (mainVideoSource.src.endsWith(`/videos/${videoFileName}`)) {
+                    mainVideo.pause();
+                    mainVideo.currentTime = 0;
+                    mainVideoSource.src = '';
+                    document.getElementById('mainVideoContainer').style.display = 'none';
+                }
                 alert('Video deleted successfully!');
                 loadVideos(); // Reload videos after deletion
             } else {
@@ -183,8 +212,18 @@
         });
     }
 
-    loadVideos(); // Initial load of videos
+    function playVideoAtTop(videoFileName) {
+        const mainVideoContainer = document.getElementById('mainVideoContainer');
+        const mainVideo = document.getElementById('mainVideo');
+        const mainVideoSource = document.getElementById('mainVideoSource');
 
+        mainVideoSource.src = `/videos/${videoFileName}`;
+        mainVideo.load();
+        mainVideoContainer.style.display = 'flex';
+        mainVideo.play();
+    }
+
+    loadVideos(); // Initial load of videos
     </script>
 </body>
 </html>

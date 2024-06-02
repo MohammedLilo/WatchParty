@@ -23,7 +23,7 @@ public class SecurityConfig {
 	SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 		http.authorizeHttpRequests(requests -> {
 			requests.requestMatchers("/videos/**","/index.html","/index2.html","party-page.html","videos-page.html","/demo-party.html","/js/**","/ws/**","/watch-parties/**","/user-info").authenticated();
-			requests.requestMatchers("/register", "/public").permitAll();
+			requests.requestMatchers("/register", "/public","register.html").permitAll();
 
 		});
 		http.httpBasic(basic -> Customizer.withDefaults());
