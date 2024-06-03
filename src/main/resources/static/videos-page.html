@@ -131,6 +131,7 @@
     <script>
         let currentPage = 0;
         const pageSize = 6;
+        const sortBy = "timestamp";
         let loading = false;
 
         function showNotification(message, type) {
@@ -184,7 +185,7 @@
                 document.querySelector('.video-list').innerHTML = '';
             }
 
-            fetch(`/videos?page=${currentPage}&size=${pageSize}`)
+            fetch(`/videos?page=${currentPage}&size=${pageSize}&sortBy=${sortBy}`)
                 .then(response => response.json())
                 .then(data => {
                     const container = document.querySelector('.video-list');

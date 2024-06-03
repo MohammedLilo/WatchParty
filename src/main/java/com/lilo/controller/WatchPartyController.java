@@ -34,8 +34,8 @@ public class WatchPartyController {
 	private final SimpMessagingTemplate simpMessagingTemplate;
 
 	@GetMapping("/watch-party")
-	String getWatchPartyPage(@RequestParam("src")String src) {
-		return "/party-page.html?src="+src;
+	String getWatchPartyPage(@RequestParam(name = "src", required = false) String src) {
+		return "/party-page.html?src=" + src;
 	}
 	
 	@GetMapping("/watch-parties/{id}")
