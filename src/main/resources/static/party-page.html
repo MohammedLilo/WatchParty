@@ -337,12 +337,13 @@ video {
 
             stompClient.subscribe(`/topic/watch-party.${partyId}`, (message) => {
                 const syncMessage = JSON.parse(message.body);
-                if(!syncMessage.event){
-                    const playEvent = new Event('play');
-                    console.log('dispatching event');
-                    videoPlayer.dispatchEvent(playEvent);
-                    return;
-                }
+              //  if(!syncMessage.event){
+                   // const playEvent = new Event('play');
+                  //  console.log('dispatching event');
+                   // videoPlayer.dispatchEvent(playEvent);
+                    
+                //    return;
+              //  }
                 handleVideoEvent(syncMessage);
             });
 
@@ -366,7 +367,7 @@ video {
     function sendVideoEvent(event) {
         const currentTime = Date.now();
      
-     if (currentTime - lastEventTime < 1000) {  // Ensuring a minimum of 0.5 second between requests
+     if (currentTime - lastEventTime < 750) {  // Ensuring a minimum of 0.5 second between requests
            return;
       }
      
