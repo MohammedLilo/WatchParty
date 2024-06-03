@@ -7,10 +7,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.socket.EnableWebSocketSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.logout.HeaderWriterLogoutHandler;
+import org.springframework.security.web.header.writers.ClearSiteDataHeaderWriter;
+import org.springframework.security.web.header.writers.ClearSiteDataHeaderWriter.Directive;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
@@ -22,13 +24,23 @@ public class SecurityConfig {
 	@Bean
 	SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 		http.authorizeHttpRequests(requests -> {
-			requests.requestMatchers("/videos/**","/index.html","/index2.html","party-page.html","videos-page.html","/demo-party.html","/js/**","/ws/**","/watch-parties/**","/user-info").authenticated();
-			requests.requestMatchers("/register", "/public","register.html").permitAll();
+//			requests.requestMatchers("/","/videos/**","/js/**","/ws/**","/watch-parties/**","/user-info").authenticated();
+			requests.requestMatchers("/signup", "/register", "/login", "/public", "/login.html", "/signup.html")
+					.permitAll()
+					.anyRequest()
+					.authenticated();
 
 		});
 		http.httpBasic(basic -> Customizer.withDefaults());
 		http.csrf(csrf -> csrf.disable());
-		http.formLogin(form -> Customizer.withDefaults());
+		http.formLogin(form -> {
+			form.loginPage("/login").permitAll();
+//			form.loginProcessingUrl("/login");
+			form.defaultSuccessUrl("/");
+		});
+		HeaderWriterLogoutHandler clearSiteData = new HeaderWriterLogoutHandler(new ClearSiteDataHeaderWriter(Directive.ALL));
+		http.logout((logout) -> logout.addLogoutHandler(clearSiteData));
+		
 		http.cors(cors -> cors.configurationSource(new CorsConfigurationSource() {
 			@Override
 			public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {

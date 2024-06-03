@@ -237,7 +237,7 @@ video {
 
     document.addEventListener('DOMContentLoaded', async () => {
         try {
-            const response = await fetch('/user-info');
+            const response = await fetch('/users/user-info');
             if (response.ok) {
                 const data = await response.json();
                 userEmail = data.email;
