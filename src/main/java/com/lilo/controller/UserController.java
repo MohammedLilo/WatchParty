@@ -1,17 +1,17 @@
 package com.lilo.controller;
 
+import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.lilo.domain.User;
+import com.lilo.dto.UserDTO;
 import com.lilo.service.UserService;
 
 import jakarta.servlet.ServletException;
@@ -26,9 +26,9 @@ import reactor.netty.http.server.HttpServerResponse;
 public class UserController {
 	private final UserService userService;
 
-	@GetMapping("/users/user-info")
-	public Map<String, String> getUserInfo(Authentication authentication) {
-		User user = userService.findByEmail(authentication.getName());
+	@GetMapping("/users/user-name")
+	public Map<String, String> getUserInfo(Principal principal) {
+		User user = userService.findByEmail(principal.getName());
 		if (user == null)
 			throw new RuntimeException("user was not found! user should not be able to access this endpoint");
 		Map<String, String> userInfo = new HashMap<>();
@@ -37,10 +37,20 @@ public class UserController {
 		return userInfo;
 	}
 
+	@GetMapping("/users")
+	public UserDTO getMethodName(Principal principal) {
+		User user = userService.findByEmail(principal.getName());
+		if (user == null)
+			throw new RuntimeException("user was not found! user should not be able to access this endpoint");
+		
+		return new UserDTO(user);
+
+	}
+
 	@DeleteMapping("/users")
-	public ResponseEntity<Void> deleteUserAccount(SecurityContextLogoutHandler  s,Authentication authentication, HttpServletRequest request,
+	public ResponseEntity<Void> deleteUserAccount(Principal principal, HttpServletRequest request,
 			HttpServerResponse response) {
-		User user = userService.findByEmail(authentication.getName());
+		User user = userService.findByEmail(principal.getName());
 
 		if (user == null)
 			throw new RuntimeException("user was not found! user should not be able to access this endpoint");
@@ -49,7 +59,7 @@ public class UserController {
 			request.logout();
 		} catch (ServletException e) {
 			log.error(e.getMessage());
-		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 		}
 		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 	}

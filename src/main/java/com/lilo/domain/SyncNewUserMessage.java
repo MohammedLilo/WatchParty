@@ -8,5 +8,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SyncNewUserMessage {
-private String userName;
+	private String event;
+	private String previousEvent;
+	private String videoUrl;
+	private Double videoCurrentTime;
+	private Long eventDateTime;
+
 }

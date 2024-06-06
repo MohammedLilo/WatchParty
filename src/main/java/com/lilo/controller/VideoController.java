@@ -1,6 +1,7 @@
 package com.lilo.controller;
 
 import java.io.IOException;
+import java.security.Principal;
 
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
@@ -8,7 +9,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -55,9 +55,9 @@ public class VideoController {
 
 	@PostMapping("/videos")
 	@ResponseBody
-	public ResponseEntity<String> uploadVideo(@RequestPart MultipartFile multipartFile,String videoName ,Authentication authentication)
+	public ResponseEntity<String> uploadVideo(@RequestPart MultipartFile multipartFile,String videoName ,Principal principal)
 			throws IOException {
-		User user = userService.findByEmail(authentication.getName());
+		User user = userService.findByEmail(principal.getName());
 		videoService.save(multipartFile, user.getId(),videoName);
 
 		return ResponseEntity.status(HttpStatus.CREATED)
@@ -66,8 +66,8 @@ public class VideoController {
 
 	@DeleteMapping("/videos/{file-name}")
 	@ResponseBody
-	public ResponseEntity<String> deleteVideo(@PathVariable("file-name") String videoFileName, Authentication authentication) {
-		User user = userService.findByEmail(authentication.getName());
+	public ResponseEntity<String> deleteVideo(@PathVariable("file-name") String videoFileName, Principal principal) {
+		User user = userService.findByEmail(principal.getName());
 		Video video = videoService.findByVideoFileName(videoFileName);
 		if (video == null || user.getId() != video.getUserId()) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)

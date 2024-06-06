@@ -9,5 +9,7 @@ public interface UserService {
 
 	void save(User user);
 
+	void nullifyPartyIdForAllUsers();
+
 	void deleteById(long id);
 }

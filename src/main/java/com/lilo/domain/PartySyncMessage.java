@@ -7,8 +7,12 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class PartySynchMessage {
+public class PartySyncMessage {
+	private long userId;
+	private String userName;
 	private String event;
 	private String videoUrl;
-	private double currentTime;
+	private Double videoCurrentTime;
+	private Long eventDateTime;
+
 }

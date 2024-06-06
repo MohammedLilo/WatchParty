@@ -234,15 +234,17 @@ video {
 	<script>
     let userEmail = '';
     let userName = '';
-
+    let eventOwnerId;
     document.addEventListener('DOMContentLoaded', async () => {
         try {
-            const response = await fetch('/users/user-info');
+            const response = await fetch('/users');
             if (response.ok) {
                 const data = await response.json();
                 userEmail = data.email;
                 userName = data.name;
-                console.log(`User Email: ${userEmail}, User Name: ${userName}`);
+                userId= data.id;
+               eventOwnerId=userId;
+                console.log(`User Email: ${userEmail}, User Name: ${userName},User id: ${userId}`);
             } else {
                 console.error('Failed to fetch user info');
             }
@@ -250,13 +252,13 @@ video {
             console.error('Error fetching user info:', error);
         }
     });
-    window.addEventListener('beforeunload', async (event) => {
-        try {
-            await fetch('/watch-parties', { method: 'DELETE' });
-        } catch (error) {
-            console.error('Error leaving watch party:', error);
-        }
-    });
+   // window.addEventListener('beforeunload', async (event) => {
+    //    try {
+     //       await fetch('/watch-parties', { method: 'DELETE' });
+     //   } catch (error) {
+    //        console.error('Error leaving watch party:', error);
+    //    }
+   // });
     const videoPlayer = document.getElementById('videoPlayer');
     const videoSource = document.getElementById('videoSource');
     const startPartyForm = document.getElementById('startPartyForm');
@@ -270,14 +272,14 @@ video {
     let stompClient;
     let lastEventTime = 0;
     let currentPartyId;
-    let isGuest=false;
-
+    let isJoining=false;
     startPartyForm.addEventListener('submit', async (event) => {
         event.preventDefault();
         const videoUrl = videoUrlInput.value;
         videoSource.src = videoUrl;
         videoPlayer.load();
-        
+//        videoPlayer.play();
+
         try {
             const response = await fetch('/watch-parties', { method: 'POST' });
             if (response.ok) {
@@ -296,17 +298,20 @@ video {
     joinPartyForm.addEventListener('submit', async (event) => {
         event.preventDefault();
         const partyId = partyIdInput.value;
-        isGuest=true;
         try {
             const response = await fetch(`/watch-parties/${partyId}`);
             if (response.ok) {
-             //   const videoUrl = await response.text(); // Get video URL from the response
-              //  videoSource.src = videoUrl;
-              //  videoPlayer.load();
+                const data = await response.json();
+                    
+               console.log(data);
+               let videoUrl=data.videoUrl;
+               handleFirstEvent(data);
+
                 currentPartyId = partyId;
                 displayPartyId(partyId);
                 console.log('before connecting to websocket '+videoUrl);
-                connectWebSocket(partyId, videoUrl);
+                connectWebSocket(partyId);
+
             } else {
                 console.error('Failed to join watch party');
             }
@@ -337,13 +342,10 @@ video {
 
             stompClient.subscribe(`/topic/watch-party.${partyId}`, (message) => {
                 const syncMessage = JSON.parse(message.body);
-              //  if(!syncMessage.event){
-                   // const playEvent = new Event('play');
-                  //  console.log('dispatching event');
-                   // videoPlayer.dispatchEvent(playEvent);
-                    
-                //    return;
-              //  }
+                if(syncMessage.event!== 'join' && syncMessage.event!== 'left'){
+                eventOwnerId=syncMessage.userId;
+                console.log(eventOwnerId);
+            }
                 handleVideoEvent(syncMessage);
             });
 
@@ -356,26 +358,87 @@ video {
             videoPlayer.addEventListener('pause', sendVideoEvent);
             videoPlayer.addEventListener('seeked', sendVideoEvent);
             
-			if(isGuest){
-				return;
-				}
+			
             // Send initial video URL to the party
-            sendVideoUrl(partyId, videoUrl);
+            if(videoUrl)
+                sendVideoUrl(partyId, videoUrl);
         });
     }
+function handleFirstEvent(syncNewUserMessage){
+    //let lastEvent=syncNewUserMessage.event;
+    let videoCurrentTime = syncNewUserMessage.videoCurrentTime;
+    let eventDateTime = syncNewUserMessage.eventDateTime;
+    let videoUrl = syncNewUserMessage.videoUrl;
 
+  //  const eventTime=new Date(eventDateTime).valueOf();
+  //  const myTime=new Date().valueOf();
+    const myTime=new Date().valueOf();
+    console.log(eventDateTime);
+    console.log(myTime);
+    const offset=(myTime-eventDateTime)/1000;
+    console.log('offset is : '+offset);
+    isJoining=true;
+    switch (syncNewUserMessage.event) {
+        case 'play':
+            videoSource.src = syncNewUserMessage.videoUrl;
+            videoPlayer.load();
+            videoPlayer.currentTime = videoCurrentTime+offset;
+            videoPlayer.play();
+            break;
+        case 'pause':
+            videoSource.src = syncNewUserMessage.videoUrl;            
+            videoPlayer.load();
+            videoPlayer.currentTime = syncNewUserMessage.videoCurrentTime;
+            videoPlayer.pause();
+            break;
+        case 'seeked':
+            videoSource.src = syncNewUserMessage.videoUrl;
+            videoPlayer.load();
+            videoPlayer.currentTime = syncNewUserMessage.videoCurrentTime;
+            if(syncNewUserMessage.previousEvent === 'play'){
+            videoPlayer.currentTime = videoCurrentTime+offset;
+            videoPlayer.play();
+            }
+            break;
+        case 'url':
+        console.log('videoUrl is : '+syncNewUserMessage.videoUrl)
+            videoSource.src = syncNewUserMessage.videoUrl;
+            videoPlayer.load();
+            break;
+    }
+
+
+}
     function sendVideoEvent(event) {
+        console.log('user id here is :'+userId);
+        console.log('event owner id here is '+ eventOwnerId);
+        if(eventOwnerId!==userId){
+            console.log('it is not my event.. i am returning without sending it to the server');
+            eventOwnerId=userId;
+            return;
+        }
+        console.log('isjoining '+isJoining);
+        if(isJoining){
+            isJoining=false;
+            console.log('i just joined so I ignored the events I fired for sync');
+            return;
+        }
+            
+
         const currentTime = Date.now();
      
-     if (currentTime - lastEventTime < 750) {  // Ensuring a minimum of 0.5 second between requests
-           return;
-      }
+     //if (currentTime - lastEventTime < 750) {  // Ensuring a minimum of 0.5 second between requests
+     //      return;
+     // }
      
        lastEventTime = currentTime;
         const syncMessage = {
             event: event.type,
-            currentTime: videoPlayer.currentTime,
-            videoUrl: videoSource.src
+            videoCurrentTime: videoPlayer.currentTime,
+            videoUrl: videoSource.src,
+            userId: userId,
+            //eventDateTime: new Date().toISOString()
+            eventDateTime: new Date().valueOf()
         };
         stompClient.send(`/app/watch-parties/${currentPartyId}`, {}, JSON.stringify(syncMessage));
     }
@@ -383,7 +446,11 @@ video {
     function sendVideoUrl(partyId, videoUrl) {
         const syncMessage = {
             event: 'url',
-            videoUrl: videoUrl
+            videoUrl: videoUrl,
+            userId: userId,
+            userName: userName,
+        //eventDateTime: new Date().toISOString()
+        eventDateTime: new Date().valueOf()
         };
         stompClient.send(`/app/watch-parties/${partyId}`, {}, JSON.stringify(syncMessage));
     }
@@ -408,26 +475,37 @@ video {
     }
 
     function handleVideoEvent(syncMessage) {
-    	if(isGuest){
-            isGuest=false;
-            videoSource.src = syncMessage.videoUrl;
-	        videoPlayer.load();
-            videoPlayer.currentTime = syncMessage.currentTime;
-            videoPlayer.play();
+    	if(syncMessage.userId===userId){
+            return;
+        }
+        if(syncMessage.event==='left'){
+            //console.log(`user ${syncMessage.userName} left the party`);
+            const messageElement = document.createElement('div');
+            messageElement.textContent = `user ${syncMessage.userName} left the party at ${syncMessage.eventDateTime}`;
+            chatMessages.appendChild(messageElement);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+	        return;
+        }
+        if(syncMessage.event==='join'){
+            //console.log(`user ${syncMessage.userName} joined the party`);
+            const messageElement = document.createElement('div');
+            messageElement.textContent = `user ${syncMessage.userName} joined the party at ${syncMessage.eventDateTime}`;
+            chatMessages.appendChild(messageElement);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
 	        return;
         }
         switch (syncMessage.event) {
             case 'play':
-                videoPlayer.currentTime = syncMessage.currentTime;
+                videoPlayer.currentTime = syncMessage.videoCurrentTime;
                 videoPlayer.play();
                 break;
             case 'pause':
-                videoPlayer.currentTime = syncMessage.currentTime;
+                videoPlayer.currentTime = syncMessage.videoCurrentTime;
                 videoPlayer.pause();
                 break;
             case 'seeked':
-                videoPlayer.currentTime = syncMessage.currentTime;
-                videoPlayer.play();
+                videoPlayer.currentTime = syncMessage.videoCurrentTime;
+                //videoPlayer.play();
                 break;
             case 'url':
                 videoSource.src = syncMessage.videoUrl;
