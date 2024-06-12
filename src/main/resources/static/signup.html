@@ -61,6 +61,7 @@
 <body>
 <div class="signup-container">
     <h2>User Registration</h2>
+     <div id="error-message" style="display: none; color: red;"></div>
     <form id="registrationForm" action="/signup" method ="post">
     <input type="text" id="fullName" name="name" placeholder="fullname" required><br>
     <input type="email" id="email" name="email" placeholder="email" required><br>
@@ -71,6 +72,18 @@
     <div id="message"></div>
 
     <script>
+    
+    document.addEventListener("DOMContentLoaded", function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const error = urlParams.get('err');
+        if (error) {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.textContent = error;
+            errorDiv.style.display = 'block';
+        }
+    });
+    
+    
         document.getElementById('registrationForm').addEventListener('submit', function(event) {
          //   event.preventDefault(); // Prevent the form from submitting
 

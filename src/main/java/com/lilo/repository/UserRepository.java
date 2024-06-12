@@ -9,6 +9,8 @@ import com.lilo.domain.User;
 public interface UserRepository extends JpaRepository<User, Long> {
 	User findByEmail(String email);
 
+	boolean existsByEmail(String email);
+
 	@Modifying
 	@Query("UPDATE User u SET u.partyId= NULL")
 	void nullifyPartyIdForAllUsers();

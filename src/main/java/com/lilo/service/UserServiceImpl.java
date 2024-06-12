@@ -25,6 +25,8 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public void save(User user) {
+		if(userRepository.existsByEmail(user.getEmail()))
+				throw new RuntimeException("this email is already taken");
 		userRepository.save(user);
 	}
 
