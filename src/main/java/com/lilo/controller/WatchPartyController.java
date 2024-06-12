@@ -59,7 +59,7 @@ public class WatchPartyController {
 
 		if (user.getPartyId() == null || user.getPartyId().isEmpty() || !user.getPartyId().equals(partyId)) {
 			user.setPartyId(partyId);
-			userService.save(user);
+			userService.update(user);
 		}
 		simpMessagingTemplate.convertAndSend("/topic/watch-party." + partyId,
 				new PartySyncMessage(user.getId(), user.getName(), "join", null, null, System.currentTimeMillis()));
@@ -116,7 +116,7 @@ public class WatchPartyController {
 
 		if (user.getPartyId() == null || user.getPartyId().isEmpty()) {
 			user.setPartyId(UUID.randomUUID().toString());
-			userService.save(user);
+			userService.update(user);
 			partyDetailTupleMap.put(user.getPartyId(), new PartyDetailTuple(1, null));
 		}
 
@@ -146,7 +146,7 @@ public class WatchPartyController {
 
 		String id = user.getPartyId();
 		user.setPartyId(null);
-		userService.save(user);
+		userService.update(user);
 
 		partyDetailTupleMap.get(id).decrementMembersCount();
 
