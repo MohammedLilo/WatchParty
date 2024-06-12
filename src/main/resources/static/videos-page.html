@@ -203,7 +203,8 @@
                             </div>
                             <div class="controls">
                                 <button onclick="deleteVideo('${video.videoFileName}', event)">Delete</button>
-                            </div>
+                            	<button onclick="startParty('${video.videoFileName}')">watch as a party</button>
+                                </div>
                         `;
                         videoItem.addEventListener('click', () => playVideoAtTop(video.videoFileName));
                         container.appendChild(videoItem);
@@ -279,7 +280,9 @@
                 loadVideos();
             }
         }
-
+        function startParty(videoFileName){
+            window.location.href = `/watch-party?src=${videoFileName}`;
+        }
         window.addEventListener('scroll', handleScroll);
 
         loadVideos(); // Initial load of videos

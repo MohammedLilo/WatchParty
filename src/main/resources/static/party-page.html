@@ -189,6 +189,16 @@ video {
 .chat-input button:hover {
 	background-color: #c0392b;
 }
+a{
+            text-decoration: none;
+            color: #ffffff;
+            background-color: #e74c3c;
+            padding: 10px 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            transition: background-color 0.3s ease;
+        }
+
 </style>
 </head>
 <body>
@@ -201,7 +211,7 @@ video {
 		<form id="startPartyForm">
 			<input type="url" id="videoUrl"
 				placeholder="Enter video URL to watch as a party" required>
-			<button type="submit">Start Party</button>
+			<button type="submit" id="start-party-button">Start Party</button>
 		</form>
 		<form id="joinPartyForm">
 			<input type="text" id="partyId" placeholder="Enter party ID to join"
@@ -211,9 +221,12 @@ video {
 	</div>
 	<div class="party-id-container">
 		<div id="partyIdDisplay" class="party-id"></div>
-		<button class="copy-button" onclick="copyPartyId()">Copy ID</button>
+		<button class="copy-button" onclick="copyPartyId()">Copy ID</button>		
 	</div>
 	<div class="main-content">
+	  <br>
+	    <a href="/videos-library">Browse Video Library</a>
+	
 		<video id="videoPlayer" controls>
 			<source id="videoSource" src="" type="video/mp4">
 			Your browser does not support the video tag.
@@ -269,10 +282,24 @@ video {
     const chatMessages = document.getElementById('chatMessages');
     const chatInput = document.getElementById('chatInput');
     const sendMessageButton = document.getElementById('sendMessageButton');
+    const startPartyButton=document.getElementById('start-party-button');
     let stompClient;
     let lastEventTime = 0;
     let currentPartyId;
     let isJoining=false;
+    
+    document.addEventListener("DOMContentLoaded", function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        let src = urlParams.get('src');
+        if (src) {
+        	const url = new URL(window.location.href);
+        	const origin = url.origin;
+        	src= `${origin}/videos/${src}`;
+        	videoUrlInput.value=src;
+        	startPartyButton.click();
+        }
+    });
+    
     startPartyForm.addEventListener('submit', async (event) => {
         event.preventDefault();
         const videoUrl = videoUrlInput.value;
