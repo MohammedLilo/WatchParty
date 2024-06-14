@@ -1,10 +1,10 @@
 package com.lilo.controller;
 
-import java.io.IOException;
 import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.context.event.EventListener;
 import org.springframework.http.HttpStatus;
@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
 import com.lilo.domain.PartyDetailTuple;
@@ -46,24 +45,20 @@ public class WatchPartyController {
 	void deleteAllPartiesFromDatabase() {
 		userService.nullifyPartyIdForAllUsers();
 	}
-
 	@GetMapping("/watch-party")
 	String getWatchPartyPage(@RequestParam(name = "src", required = false) String src) {
 		return "/party-page.html?src=" + src;
 	}
 
-	@GetMapping("/watch-parties/{party-id}/members-count")
-	public SseEmitter getMethodName(@PathVariable("party-id") String partyId) {
-		SseEmitter emitter = new SseEmitter(5000L);
-		try {
-			emitter.send(SseEmitter.event().name("PartyMembersCount")
-											.data(this.partyDetailTupleMap.get(partyId).getMembersCount()));
-		} catch (IOException e) {
-			log.error("an IOException occured.. " + e.getMessage());
-		}
-		return emitter;
-	}
-
+	/*
+	 * @GetMapping("/watch-parties/{party-id}/members-count") public SseEmitter
+	 * getMethodName(@PathVariable("party-id") String partyId) { SseEmitter emitter
+	 * = new SseEmitter(5000L); try {
+	 * emitter.send(SseEmitter.event().name("PartyMembersCount")
+	 * .data(this.partyDetailTupleMap.get(partyId).getMembersCount())); } catch
+	 * (IOException e) { log.error("an IOException occured.. " + e.getMessage()); }
+	 * return emitter; }
+	 */
 	@GetMapping("/watch-parties/{id}")
 	@ResponseBody
 	public SyncNewUserMessage joinParty(@PathVariable("id") String partyId, Principal principal) {
@@ -79,7 +74,15 @@ public class WatchPartyController {
 				new PartySyncMessage(user.getId(), user.getName(), "join", null, null, System.currentTimeMillis()));
 		PartyDetailTuple tuple = partyDetailTupleMap.get(partyId);
 		tuple.incrementMembersCount();
-
+		new Thread(() -> {
+			try {
+				TimeUnit.MILLISECONDS.sleep(1000);
+			} catch (InterruptedException e) {
+				log.error(e.getMessage());
+			}
+			simpMessagingTemplate.convertAndSend("/topic/watch-party-members-count." + partyId,
+					tuple.getMembersCount());
+		}).start();
 		return calculateSyncInfo(partyId);
 	}
 
@@ -131,10 +134,21 @@ public class WatchPartyController {
 		if (user.getPartyId() == null || user.getPartyId().isEmpty()) {
 			user.setPartyId(UUID.randomUUID().toString());
 			userService.update(user);
-			partyDetailTupleMap.put(user.getPartyId(), new PartyDetailTuple(1, null));
+			partyDetailTupleMap.put(user.getPartyId(), new PartyDetailTuple());
+			String partyId = user.getPartyId();
+			new Thread(() -> {
+				try {
+					TimeUnit.MILLISECONDS.sleep(1000);
+				} catch (InterruptedException e) {
+					log.error(e.getMessage());
+				}
+				simpMessagingTemplate.convertAndSend("/topic/watch-party-members-count." + partyId,
+						partyDetailTupleMap.get(partyId).getMembersCount());
+			}).start();
+		
 		}
-
 		return user.getPartyId();
+
 	}
 
 	@MessageMapping("/watch-parties/{id}")
@@ -158,17 +172,22 @@ public class WatchPartyController {
 		if (user.getPartyId() == null || user.getPartyId().equals(""))
 			return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 
-		String id = user.getPartyId();
+		String partyId = user.getPartyId();
 		user.setPartyId(null);
 		userService.update(user);
 
-		partyDetailTupleMap.get(id).decrementMembersCount();
+		partyDetailTupleMap.get(partyId).decrementMembersCount();
 
+		PartyDetailTuple tuple = partyDetailTupleMap.get(partyId);
 		PartySyncMessage partySyncMessage = new PartySyncMessage(user.getId(), user.getName(), "left", null, null,
 				System.currentTimeMillis());
+		new Thread(() -> {
+			simpMessagingTemplate.convertAndSend("/topic/watch-party-members-count." + partyId,
+					tuple.getMembersCount());
+		}).start();
 
 		// notify other party members that a user (name) left the party
-		simpMessagingTemplate.convertAndSend("/topic/watch-party." + id, partySyncMessage);
+		simpMessagingTemplate.convertAndSend("/topic/watch-party." + partyId, partySyncMessage);
 
 		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 	}
@@ -177,4 +196,5 @@ public class WatchPartyController {
 	void sessionDisconnectEventHandler(SessionDisconnectEvent event) {
 		this.leaveParty(event.getUser());
 	}
+	
 }

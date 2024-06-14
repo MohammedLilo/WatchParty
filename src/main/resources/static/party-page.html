@@ -266,7 +266,7 @@ a{
         }
     });
     
-    function setupEventSource(partyId) {
+    /*function setupEventSource(partyId) {
         const eventSource = new EventSource(`/watch-parties/${partyId}/members-count`);
 
         eventSource.addEventListener("PartyMembersCount", function(event) {
@@ -274,14 +274,9 @@ a{
             document.getElementById("membersCount").textContent = data;
         });
     }
+    */
     
-   // window.addEventListener('beforeunload', async (event) => {
-    //    try {
-     //       await fetch('/watch-parties', { method: 'DELETE' });
-     //   } catch (error) {
-    //        console.error('Error leaving watch party:', error);
-    //    }
-   // });
+
     const videoPlayer = document.getElementById('videoPlayer');
     const videoSource = document.getElementById('videoSource');
     const startPartyForm = document.getElementById('startPartyForm');
@@ -324,7 +319,7 @@ a{
                 currentPartyId = partyId;
                 displayPartyId(partyId);
                 connectWebSocket(partyId, videoUrl,false);
-                setupEventSource(partyId);
+              //  setupEventSource(partyId);
             } else {
                 console.error('Failed to create watch party');
             }
@@ -336,6 +331,7 @@ a{
     joinPartyForm.addEventListener('submit', async (event) => {
         event.preventDefault();
         const partyId = partyIdInput.value;
+        connectWebSocket(partyId);
         try {
             const response = await fetch(`/watch-parties/${partyId}`);
             if (response.ok) {
@@ -348,8 +344,10 @@ a{
                 currentPartyId = partyId;
                 displayPartyId(partyId);
                 console.log('before connecting to websocket '+videoUrl);
-                connectWebSocket(partyId);
-                setupEventSource(partyId);
+             //shifted to the beginning of the function   connectWebSocket(partyId);
+             
+             
+            //    setupEventSource(partyId);
 
             } else {
                 console.error('Failed to join watch party');
@@ -387,7 +385,13 @@ a{
             }
                 handleVideoEvent(syncMessage);
             });
-
+            
+            stompClient.subscribe(`/topic/watch-party-members-count.${partyId}`, (message) => {
+                const data = JSON.parse(message.body);
+                console.log('received a count ');
+                document.getElementById("membersCount").textContent = data;
+            });
+            
             stompClient.subscribe(`/topic/chat.${partyId}`, (message) => {
                 const chatMessage = JSON.parse(message.body);
                 displayChatMessage(chatMessage);

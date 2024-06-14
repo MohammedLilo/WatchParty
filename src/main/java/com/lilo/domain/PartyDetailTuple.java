@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PartyDetailTuple {
-	private int membersCount;
+	private int membersCount = 1;
 	private PartySyncMessage latestPartySyncMessage;
 	private PartySyncMessage previousPartySyncMessage;
 
@@ -20,8 +20,7 @@ public class PartyDetailTuple {
 		this.membersCount--;
 	}
 
-	public PartyDetailTuple(int membersCount, PartySyncMessage latestPartySyncMessage) {
-		this.membersCount = membersCount;
+	public PartyDetailTuple(PartySyncMessage latestPartySyncMessage) {
 		this.latestPartySyncMessage = latestPartySyncMessage;
 	}
 }

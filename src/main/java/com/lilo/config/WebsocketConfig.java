@@ -17,7 +17,7 @@ public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
 
 	@Override
 	public void configureMessageBroker(MessageBrokerRegistry registry) {
-		registry.enableStompBrokerRelay("/topic/watch-party","/topic/chat")
+		registry.enableStompBrokerRelay("/topic/watch-party","/topic/watch-party-members-count","/topic/chat")
 				.setRelayHost("localhost")
 				.setRelayPort(61613);
 		registry.setApplicationDestinationPrefixes("/app");
