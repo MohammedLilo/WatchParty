@@ -1,5 +1,6 @@
 package com.lilo.controller;
 
+import java.io.IOException;
 import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
 import com.lilo.domain.PartyDetailTuple;
@@ -48,6 +50,18 @@ public class WatchPartyController {
 	@GetMapping("/watch-party")
 	String getWatchPartyPage(@RequestParam(name = "src", required = false) String src) {
 		return "/party-page.html?src=" + src;
+	}
+
+	@GetMapping("/watch-parties/{party-id}/members-count")
+	public SseEmitter getMethodName(@PathVariable("party-id") String partyId) {
+		SseEmitter emitter = new SseEmitter(5000L);
+		try {
+			emitter.send(SseEmitter.event().name("PartyMembersCount")
+											.data(this.partyDetailTupleMap.get(partyId).getMembersCount()));
+		} catch (IOException e) {
+			log.error("an IOException occured.. " + e.getMessage());
+		}
+		return emitter;
 	}
 
 	@GetMapping("/watch-parties/{id}")
@@ -153,10 +167,9 @@ public class WatchPartyController {
 		PartySyncMessage partySyncMessage = new PartySyncMessage(user.getId(), user.getName(), "left", null, null,
 				System.currentTimeMillis());
 
-
 		// notify other party members that a user (name) left the party
 		simpMessagingTemplate.convertAndSend("/topic/watch-party." + id, partySyncMessage);
-		
+
 		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 	}
 

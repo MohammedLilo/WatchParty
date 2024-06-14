@@ -226,7 +226,7 @@ a{
 	<div class="main-content">
 	  <br>
 	    <a href="/videos-library">Browse Video Library</a>
-	
+	 <p>Total Members: <span id="membersCount">0</span></p>
 		<video id="videoPlayer" controls>
 			<source id="videoSource" src="" type="video/mp4">
 			Your browser does not support the video tag.
@@ -265,6 +265,16 @@ a{
             console.error('Error fetching user info:', error);
         }
     });
+    
+    function setupEventSource(partyId) {
+        const eventSource = new EventSource(`/watch-parties/${partyId}/members-count`);
+
+        eventSource.addEventListener("PartyMembersCount", function(event) {
+            const data = event.data;
+            document.getElementById("membersCount").textContent = data;
+        });
+    }
+    
    // window.addEventListener('beforeunload', async (event) => {
     //    try {
      //       await fetch('/watch-parties', { method: 'DELETE' });
@@ -314,6 +324,7 @@ a{
                 currentPartyId = partyId;
                 displayPartyId(partyId);
                 connectWebSocket(partyId, videoUrl,false);
+                setupEventSource(partyId);
             } else {
                 console.error('Failed to create watch party');
             }
@@ -338,6 +349,7 @@ a{
                 displayPartyId(partyId);
                 console.log('before connecting to websocket '+videoUrl);
                 connectWebSocket(partyId);
+                setupEventSource(partyId);
 
             } else {
                 console.error('Failed to join watch party');
