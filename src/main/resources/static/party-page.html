@@ -318,7 +318,7 @@ a{
                 const partyId = await response.text();
                 currentPartyId = partyId;
                 displayPartyId(partyId);
-                connectWebSocket(partyId, videoUrl,false);
+                connectWebSocket(partyId, videoUrl);
               //  setupEventSource(partyId);
             } else {
                 console.error('Failed to create watch party');
@@ -366,18 +366,30 @@ a{
         }
     });
     
+
     function displayPartyId(partyId) {
         partyIdDisplay.textContent = `Party ID: ${partyId}`;
     }
 
+    let stompSubscriptions=[];
     function connectWebSocket(partyId, videoUrl) {
+        if (stompSubscriptions.length > 0) {
+        	
+            stompSubscriptions.forEach(sub => {
+            	sub.unsubscribe();
+            });
+            stompClient.disconnect(() => {
+                console.log('Disconnected from WebSocket');
+            });
+            stompSubscriptions = [];
+        } 
         const socket = new SockJS('/ws');
         stompClient = Stomp.over(socket);
 
         stompClient.connect({}, () => {
             console.log('Connected');
 
-            stompClient.subscribe(`/topic/watch-party.${partyId}`, (message) => {
+            let watchPartySubscription =  stompClient.subscribe(`/topic/watch-party.${partyId}`, (message) => {
                 const syncMessage = JSON.parse(message.body);
                 if(syncMessage.event!== 'join' && syncMessage.event!== 'left'){
                 eventOwnerId=syncMessage.userId;
@@ -386,16 +398,17 @@ a{
                 handleVideoEvent(syncMessage);
             });
             
-            stompClient.subscribe(`/topic/watch-party-members-count.${partyId}`, (message) => {
+        let membersCountSubscription = stompClient.subscribe(`/topic/watch-party-members-count.${partyId}`, (message) => {
                 const data = JSON.parse(message.body);
-                console.log('received a count ');
+                console.log('received a count '+data);
                 document.getElementById("membersCount").textContent = data;
             });
             
-            stompClient.subscribe(`/topic/chat.${partyId}`, (message) => {
+          let chatSubscription = stompClient.subscribe(`/topic/chat.${partyId}`, (message) => {
                 const chatMessage = JSON.parse(message.body);
                 displayChatMessage(chatMessage);
             });
+            stompSubscriptions.push(watchPartySubscription, membersCountSubscription, chatSubscription);
 
             videoPlayer.addEventListener('play', sendVideoEvent);
             videoPlayer.addEventListener('pause', sendVideoEvent);
