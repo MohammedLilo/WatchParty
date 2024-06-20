@@ -333,7 +333,9 @@ a{
         const partyId = partyIdInput.value;
         connectWebSocket(partyId);
         try {
-            const response = await fetch(`/watch-parties/${partyId}`);
+            const response = await fetch(`/watch-parties/${partyId}`, {
+                method: 'PUT',
+                });
             if (response.ok) {
                 const data = await response.json();
                     
@@ -462,7 +464,7 @@ function handleFirstEvent(syncNewUserMessage){
             videoPlayer.load();
             break;
     }
-
+    isJoining=false;
 
 }
     function sendVideoEvent(event) {

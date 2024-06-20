@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
@@ -59,7 +60,7 @@ public class WatchPartyController {
 	 * (IOException e) { log.error("an IOException occured.. " + e.getMessage()); }
 	 * return emitter; }
 	 */
-	@GetMapping("/watch-parties/{id}")
+	@PutMapping("/watch-parties/{id}")
 	@ResponseBody
 	public SyncNewUserMessage joinParty(@PathVariable("id") String partyId, Principal principal) {
 		User user = userService.findByEmail(principal.getName());
