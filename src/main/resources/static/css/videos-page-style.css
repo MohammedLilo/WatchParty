@@ -1,0 +1,105 @@
+ body {
+            font-family: 'Roboto', sans-serif;
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            color: #e74c3c;
+            margin: 20px 0;
+        }
+
+        .main-video {
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 20px;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .video-list {
+            width: 100%;
+            max-width: 800px;
+            margin-top: 20px;
+        }
+
+        .video-item {
+            background: #34495e;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+        }
+
+        .video-item img {
+            width: 100%;
+            max-width: 120px;
+            height: 90px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+
+        .video-description {
+            flex-grow: 1;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        button, input[type="file"] {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            background: #e74c3c;
+            color: #ffffff;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        button:hover, input[type="file"]:hover {
+            background: #c0392b;
+        }
+
+        @media (max-width: 600px) {
+            .video-item {
+                flex-direction: column;
+                align-items: start;
+            }
+
+            .video-item img {
+                width: calc(100% - 20px); /* Subtracting padding */
+            }
+        }
+
+        #notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #e74c3c;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+            z-index: 1000;
+        }
+
+        #notification.success {
+            background: #2ecc71;
+        }
+
+        #notification.error {
+            background: #e74c3c;
+        }
+        

@@ -25,7 +25,7 @@ public class SecurityConfig {
 	SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 		http.authorizeHttpRequests(requests -> {
 //			requests.requestMatchers("/","/videos/**","/js/**","/ws/**","/watch-parties/**","/user-info").authenticated();
-			requests.requestMatchers("/signup", "/register", "/login", "/public", "/login.html", "/signup.html")
+			requests.requestMatchers("/signup", "/register", "/login", "/public", "/login.html", "/signup.html", "/js/**", "/css/**")
 					.permitAll()
 					.anyRequest()
 					.authenticated();
@@ -35,7 +35,6 @@ public class SecurityConfig {
 		http.csrf(csrf -> csrf.disable());
 		http.formLogin(form -> {
 			form.loginPage("/login").permitAll();
-//			form.loginProcessingUrl("/login");
 			form.defaultSuccessUrl("/");
 		});
 		HeaderWriterLogoutHandler clearSiteData = new HeaderWriterLogoutHandler(new ClearSiteDataHeaderWriter(Directive.ALL));
