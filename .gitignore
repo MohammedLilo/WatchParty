@@ -31,3 +31,7 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### WatchParty Web App ###
+uploads/
+
