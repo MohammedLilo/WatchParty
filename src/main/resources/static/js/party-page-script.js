@@ -105,7 +105,8 @@
             //    setupEventSource(partyId);
 
             } else {
-                console.error('Failed to join watch party');
+                const errorMessage = await response.text();
+                console.error('Failed to join watch party, with error message: ' + errorMessage);
             }
         } catch (error) {
             console.error('Error joining watch party:', error);

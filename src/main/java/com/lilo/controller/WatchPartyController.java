@@ -62,7 +62,7 @@ public class WatchPartyController {
 	 */
 	@PutMapping("/watch-parties/{id}")
 	@ResponseBody
-	public SyncNewUserMessage joinParty(@PathVariable("id") String partyId, Principal principal) {
+	public ResponseEntity<?> joinParty(@PathVariable("id") String partyId, Principal principal) {
 		User user = userService.findByEmail(principal.getName());
 		if (user == null)
 			throw new RuntimeException("Error finding user for email : " + principal.getName());
@@ -70,21 +70,22 @@ public class WatchPartyController {
 		if (user.getPartyId() == null || user.getPartyId().isEmpty() || !user.getPartyId().equals(partyId)) {
 			user.setPartyId(partyId);
 			userService.update(user);
+			simpMessagingTemplate.convertAndSend("/topic/watch-party." + partyId,
+					new PartySyncMessage(user.getId(), user.getName(), "join", null, null, System.currentTimeMillis()));
+			PartyDetailTuple tuple = partyDetailTupleMap.get(partyId);
+			tuple.incrementMembersCount();
+			new Thread(() -> {
+				try {
+					TimeUnit.MILLISECONDS.sleep(1000);
+				} catch (InterruptedException e) {
+					log.error(e.getMessage());
+				}
+				simpMessagingTemplate.convertAndSend("/topic/watch-party-members-count." + partyId,
+						tuple.getMembersCount());
+			}).start();
+			return ResponseEntity.status(HttpStatus.OK).body(calculateSyncInfo(partyId));
 		}
-		simpMessagingTemplate.convertAndSend("/topic/watch-party." + partyId,
-				new PartySyncMessage(user.getId(), user.getName(), "join", null, null, System.currentTimeMillis()));
-		PartyDetailTuple tuple = partyDetailTupleMap.get(partyId);
-		tuple.incrementMembersCount();
-		new Thread(() -> {
-			try {
-				TimeUnit.MILLISECONDS.sleep(1000);
-			} catch (InterruptedException e) {
-				log.error(e.getMessage());
-			}
-			simpMessagingTemplate.convertAndSend("/topic/watch-party-members-count." + partyId,
-					tuple.getMembersCount());
-		}).start();
-		return calculateSyncInfo(partyId);
+	return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("user is already in a party");
 	}
 
 	private SyncNewUserMessage calculateSyncInfo(String partyId) {
