@@ -1,6 +1,6 @@
 # WatchParty
 
-WatchParty is a web application that allows users to create watch parties with other users to watch videos in sync while chatting together during the party. Using Spring Boot, mysql and rabbitmq for the backend, and vanilla javascript for the frontend.
+WatchParty is a web application that allows users to create watch parties that other users can join to watch videos in sync while chatting together during the party. built using Spring Boot, MySQL and RabbitMQ for the backend, and vanilla JavaScript with HTML and CSS for the frontend.
 
 ![image](https://github.com/MohammedLilo/streaming-using-web/assets/126367645/14977c14-b2b6-401b-a0eb-beedec03a2b4)
 
