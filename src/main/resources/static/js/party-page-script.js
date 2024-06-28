@@ -290,10 +290,11 @@ function handleFirstEvent(syncNewUserMessage){
     	if(syncMessage.userId===userId){
             return;
         }
+        const dateTime= new Date(syncMessage.eventDateTime*1000);
         if(syncMessage.event==='left'){
             //console.log(`user ${syncMessage.userName} left the party`);
             const messageElement = document.createElement('div');
-            messageElement.textContent = `user ${syncMessage.userName} left the party at ${syncMessage.eventDateTime}`;
+            messageElement.textContent = `user ${syncMessage.userName} left the party at ${dateTime}`;
             chatMessages.appendChild(messageElement);
             chatMessages.scrollTop = chatMessages.scrollHeight;
 	        return;
@@ -301,7 +302,7 @@ function handleFirstEvent(syncNewUserMessage){
         if(syncMessage.event==='join'){
             //console.log(`user ${syncMessage.userName} joined the party`);
             const messageElement = document.createElement('div');
-            messageElement.textContent = `user ${syncMessage.userName} joined the party at ${syncMessage.eventDateTime}`;
+            messageElement.textContent = `user ${syncMessage.userName} joined the party at ${dateTime}`;
             chatMessages.appendChild(messageElement);
             chatMessages.scrollTop = chatMessages.scrollHeight;
 	        return;
