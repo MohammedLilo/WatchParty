@@ -55,7 +55,7 @@ public class VideoController {
 
 	@PostMapping("/videos")
 	@ResponseBody
-	public ResponseEntity<String> uploadVideo(@RequestPart MultipartFile multipartFile,String videoName ,Principal principal)
+	public ResponseEntity<String> uploadVideo(@RequestPart MultipartFile multipartFile,@RequestPart String videoName ,Principal principal)
 			throws IOException {
 		User user = userService.findByEmail(principal.getName());
 		videoService.save(multipartFile, user.getId(),videoName);
