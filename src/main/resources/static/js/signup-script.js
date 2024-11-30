@@ -11,12 +11,12 @@
     
     
         document.getElementById('registrationForm').addEventListener('submit', function(event) {
-         //   event.preventDefault(); // Prevent the form from submitting
+           // event.preventDefault(); // Prevent the form from submitting
 
             var email = document.getElementById('email').value;
             var password = document.getElementById('password').value;
-            var fullName = document.getElementById('name').value;
-
+            var fullName = document.getElementById('fullName').value;
+            var phoneNumber = document.getElementById('phoneNumber').value;
             var xhr = new XMLHttpRequest();
             xhr.open('POST', '/signup', true);
             xhr.setRequestHeader('Content-Type', 'application/json');
@@ -30,5 +30,5 @@
                 }
             };
             console.log(email);
-            xhr.send(JSON.stringify({email: email, password: password, fullName: fullName}));
+            xhr.send(JSON.stringify({email: email, password: password, fullName: fullName,phoneNumber:phoneNumber}));
         });

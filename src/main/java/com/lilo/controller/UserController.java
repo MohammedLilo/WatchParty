@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.lilo.domain.User;
-import com.lilo.dto.UserDTO;
+import com.lilo.model.User;
+import com.lilo.model.dto.UserDTO;
 import com.lilo.service.UserService;
 
 import jakarta.servlet.ServletException;

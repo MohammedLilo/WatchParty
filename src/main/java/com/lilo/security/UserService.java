@@ -10,7 +10,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import com.lilo.domain.User;
+import com.lilo.model.User;
 import com.lilo.repository.UserRepository;
 
 @Service
@@ -31,8 +31,8 @@ public class UserService implements UserDetailsService {
 		String password = user.getPassword();
 
 		Collection<GrantedAuthority> authorities = Collections
-				.singletonList(new SimpleGrantedAuthority(user.getRole()));
-
+//				.singletonList(new SimpleGrantedAuthority(user.getRole()));
+				.singletonList(new SimpleGrantedAuthority("USER"));
 		return new org.springframework.security.core.userdetails.User(userName, password, authorities);
 	}
 

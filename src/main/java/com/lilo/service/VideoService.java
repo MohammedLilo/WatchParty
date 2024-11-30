@@ -12,7 +12,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.lilo.domain.Video;
+import com.lilo.model.Video;
 import com.lilo.repository.VideoRepository;
 
 import lombok.RequiredArgsConstructor;

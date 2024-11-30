@@ -19,8 +19,8 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.lilo.domain.User;
-import com.lilo.domain.Video;
+import com.lilo.model.User;
+import com.lilo.model.Video;
 import com.lilo.service.UserService;
 import com.lilo.service.VideoService;
 import com.lilo.service.VideoStorageService;

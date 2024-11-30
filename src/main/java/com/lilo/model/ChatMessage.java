@@ -1,4 +1,4 @@
-package com.lilo.domain;
+package com.lilo.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

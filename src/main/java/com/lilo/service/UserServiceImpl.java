@@ -1,8 +1,9 @@
 package com.lilo.service;
 
+import com.lilo.operationResult.TableOperationResult;
 import org.springframework.stereotype.Service;
 
-import com.lilo.domain.User;
+import com.lilo.model.User;
 import com.lilo.repository.UserRepository;
 
 import jakarta.transaction.Transactional;
@@ -24,10 +25,11 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public void save(User user) {
+	public TableOperationResult save(User user) {
 		if (userRepository.existsByEmail(user.getEmail()))
-			throw new RuntimeException("this email is already taken");
+			return  TableOperationResult.fromFailure("this email is already taken");
 		userRepository.save(user);
+		return TableOperationResult.fromSuccess();
 	}
 
 	@Override

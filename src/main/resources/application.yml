@@ -1,7 +1,8 @@
 spring:
   
   datasource:
-    url: jdbc:mysql://localhost:3306/streaming_app_using_springweb_db
+#    url: jdbc:mysql://localhost:3306/streaming_app_using_springweb_db
+    url: jdbc:mysql://localhost:3306/watch_party_db
     username: root
     password: password
   jpa:

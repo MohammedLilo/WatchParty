@@ -24,10 +24,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
-import com.lilo.domain.PartyDetailTuple;
-import com.lilo.domain.PartySyncMessage;
-import com.lilo.domain.SyncNewUserMessage;
-import com.lilo.domain.User;
+import com.lilo.model.PartyDetailTuple;
+import com.lilo.model.PartySyncMessage;
+import com.lilo.model.SyncNewUserMessage;
+import com.lilo.model.User;
 import com.lilo.service.UserService;
 
 import jakarta.annotation.PreDestroy;
