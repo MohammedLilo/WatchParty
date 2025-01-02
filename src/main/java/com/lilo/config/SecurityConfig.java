@@ -25,7 +25,8 @@ public class SecurityConfig {
 	SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 		http.authorizeHttpRequests(requests -> {
 //			requests.requestMatchers("/","/videos/**","/js/**","/ws/**","/watch-parties/**","/user-info").authenticated();
-			requests.requestMatchers("/signup", "/register", "/login", "/public", "/login.html", "/signup.html", "/js/**", "/css/**")
+			requests.requestMatchers("/signup", "/register", "/login", "/public", "/login.html", "/signup.html", "/js/**", "/css/**", "/swagger-ui/**", // Allow Swagger UI
+					"/v3/api-docs/**")
 					.permitAll()
 					.anyRequest()
 					.authenticated();
