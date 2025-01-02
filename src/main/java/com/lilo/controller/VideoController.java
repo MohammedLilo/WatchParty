@@ -70,7 +70,7 @@ public class VideoController {
 		User user = userService.findByEmail(principal.getName());
 		Video video = videoService.findByVideoFileName(videoFileName);
 		if (video == null || user.getId() != video.getUserId()) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+			return ResponseEntity.status(HttpStatus.FORBIDDEN)
 					.body("You do not have the authority to delete a video that is not yours.");
 		}
 		videoService.deleteByVideoFileName(videoFileName);

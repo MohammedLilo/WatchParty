@@ -65,7 +65,7 @@ public class WatchPartyController {
 	public ResponseEntity<?> joinParty(@PathVariable("id") String partyId, Principal principal) {
 		User user = userService.findByEmail(principal.getName());
 		if (user == null)
-			throw new RuntimeException("Error finding user for email : " + principal.getName());
+			return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
 
 		if (user.getPartyId() == null || user.getPartyId().isEmpty() || !user.getPartyId().equals(partyId)) {
 			user.setPartyId(partyId);
@@ -128,10 +128,10 @@ public class WatchPartyController {
 
 	@PostMapping("/watch-parties")
 	@ResponseBody
-	public String createWatchParty(Principal principal) {
+	public ResponseEntity<?> createWatchParty(Principal principal) {
 		User user = userService.findByEmail(principal.getName());
 		if (user == null)
-			throw new RuntimeException("Error finding user for email : " + principal.getName());
+			return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
 
 		if (user.getPartyId() == null || user.getPartyId().isEmpty()) {
 			user.setPartyId(UUID.randomUUID().toString());
@@ -149,8 +149,7 @@ public class WatchPartyController {
 			}).start();
 		
 		}
-		return user.getPartyId();
-
+		return ResponseEntity.ok(user.getPartyId());
 	}
 
 	@MessageMapping("/watch-parties/{id}")
@@ -170,7 +169,7 @@ public class WatchPartyController {
 		User user = userService.findByEmail(principal.getName());
 
 		if (user == null)
-			throw new RuntimeException("Error finding user for email : " + principal.getName());
+			return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
 		if (user.getPartyId() == null || user.getPartyId().equals(""))
 			return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 
@@ -198,5 +197,5 @@ public class WatchPartyController {
 	void sessionDisconnectEventHandler(SessionDisconnectEvent event) {
 		this.leaveParty(event.getUser());
 	}
-	
+
 }
