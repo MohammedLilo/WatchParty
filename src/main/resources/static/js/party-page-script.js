@@ -45,7 +45,26 @@
     let lastEventTime = 0;
     let currentPartyId;
     let isJoining=false;
-    
+ const changeVideoForm = document.getElementById('changeVideoForm');
+ const newVideoUrlInput = document.getElementById('newVideoUrl');
+
+ changeVideoForm.addEventListener('submit', (event) => {
+     event.preventDefault();
+
+     const newVideoUrl = newVideoUrlInput.value.trim();
+     if (!newVideoUrl || !currentPartyId) {
+         alert('Please enter a valid video URL and ensure you are in a party.');
+         return;
+     }
+
+     // Broadcast the new URL to the party
+     sendVideoUrl(currentPartyId, newVideoUrl);
+
+     // Update the video player locally
+     videoSource.src = newVideoUrl;
+     videoPlayer.load();
+     console.log(`Video URL updated to: ${newVideoUrl}`);
+ });
     document.addEventListener("DOMContentLoaded", function() {
         const urlParams = new URLSearchParams(window.location.search);
         let src = urlParams.get('src');

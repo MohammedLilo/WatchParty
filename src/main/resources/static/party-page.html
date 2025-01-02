@@ -30,6 +30,12 @@
 		<div id="partyIdDisplay" class="party-id"></div>
 		<button class="copy-button" onclick="copyPartyId()">Copy ID</button>		
 	</div>
+	<div id="changeVideoContainer">
+		<form id="changeVideoForm">
+			<input type="url" id="newVideoUrl" placeholder="Enter new video URL" required>
+			<button type="submit">Change Video</button>
+		</form>
+	</div>
 	<div class="main-content">
 	  <br>
 	    <a href="/videos-library">Browse Video Library</a>
@@ -38,6 +44,7 @@
 			<source id="videoSource" src="" type="video/mp4">
 			Your browser does not support the video tag.
 		</video>
+
 		<div class="chat-container">
 			<div class="chat-messages" id="chatMessages"></div>
 			<div class="chat-input">
