@@ -27,24 +27,23 @@ public class UserController {
 	private final UserService userService;
 
 	@GetMapping("/users/user-name")
-	public Map<String, String> getUserInfo(Principal principal) {
+	public ResponseEntity<Object> getUserInfo(Principal principal) {
 		User user = userService.findByEmail(principal.getName());
 		if (user == null)
-			throw new RuntimeException("user was not found! user should not be able to access this endpoint");
+			return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+
 		Map<String, String> userInfo = new HashMap<>();
 		userInfo.put("email", user.getEmail());
 		userInfo.put("name", user.getName());
-		return userInfo;
+		return ResponseEntity.status(HttpStatus.OK).body(userInfo);
 	}
 
 	@GetMapping("/users")
-	public UserDTO getMethodName(Principal principal) {
+	public ResponseEntity<UserDTO> getMethodName(Principal principal) {
 		User user = userService.findByEmail(principal.getName());
 		if (user == null)
-			throw new RuntimeException("user was not found! user should not be able to access this endpoint");
-		
-		return new UserDTO(user);
-
+			return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+		return  ResponseEntity.ok(new UserDTO(user));
 	}
 
 	@DeleteMapping("/users")
@@ -53,7 +52,7 @@ public class UserController {
 		User user = userService.findByEmail(principal.getName());
 
 		if (user == null)
-			throw new RuntimeException("user was not found! user should not be able to access this endpoint");
+			return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
 		userService.deleteById(user.getId());
 		try {
 			request.logout();
