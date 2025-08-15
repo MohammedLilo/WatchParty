@@ -18,3 +18,5 @@ spring:
 #logging:
 #  file:
 #    path: ./logs
+server:
+  port: 8081
