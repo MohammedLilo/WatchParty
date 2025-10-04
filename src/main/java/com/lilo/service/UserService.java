@@ -1,18 +1,29 @@
 package com.lilo.service;
 
 import com.lilo.model.User;
+import com.lilo.model.dto.UserInputDTO;
 import com.lilo.operationResult.TableOperationResult;
 
+import java.util.List;
+import java.util.Optional;
+
 public interface UserService {
-	User findById(long id);
+    Optional<User> findById(long id);
 
-	User findByEmail(String email);
+    Optional<User> findByEmail(String email);
 
-	TableOperationResult save(User user);
+    boolean ownsParty(long id);
 
-	void update(User user);
+    TableOperationResult save(User user);
 
-	void nullifyPartyIdForAllUsers();
+    TableOperationResult update(User user, UserInputDTO targetUser);
 
-	void deleteById(long id);
+    TableOperationResult update(User user);
+
+    void nullifyPartyIdForAllUsers();
+
+    void deleteById(long id);
+
+    Optional<User> findFirstByPartyIdOrderByJoinTime(String partyId);
+    List<User> findAllByPartyIdOrderByJoinTime(String partyId);
 }

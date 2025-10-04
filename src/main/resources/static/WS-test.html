@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STOMP Connection Tester</title>
+    <!-- Load Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load SockJS and STOMP libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <style>
+        /* Custom font */
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen p-4 sm:p-8">
+
+<div class="max-w-4xl mx-auto bg-white shadow-xl rounded-xl p-6 md:p-10">
+    <header class="mb-8">
+        <h1 class="text-3xl font-extrabold text-indigo-700">STOMP WebSocket Tester</h1>
+        <p class="text-gray-500 mt-1">Use the console (F12) to monitor the connection lifecycle events.</p>
+    </header>
+
+    <!-- Connection Status Card -->
+    <div id="status-card" class="p-4 rounded-lg shadow-md mb-6 transition duration-300">
+        <h2 class="text-lg font-semibold flex items-center">
+            <span id="status-indicator" class="w-3 h-3 rounded-full mr-2 bg-gray-400 animate-pulse"></span>
+            Connection Status: <span id="status-text" class="ml-2 font-bold text-gray-700">Disconnected</span>
+        </h2>
+    </div>
+
+    <!-- Connection Controls -->
+    <div class="flex flex-wrap gap-4 mb-8">
+        <button id="connect-btn" class="flex-1 min-w-[120px] bg-indigo-600 text-white py-2 px-4 rounded-lg shadow-md hover:bg-indigo-700 transition duration-150 font-medium disabled:opacity-50">
+            Connect
+        </button>
+        <button id="disconnect-btn" class="flex-1 min-w-[120px] bg-red-500 text-white py-2 px-4 rounded-lg shadow-md hover:bg-red-600 transition duration-150 font-medium disabled:opacity-50" disabled>
+            Disconnect
+        </button>
+    </div>
+
+    <!-- Test Message Section -->
+    <div class="border-t pt-6">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">Test Application Messaging</h2>
+        <p class="text-sm text-gray-500 mb-4">
+            This will send a test message to the `/app/test` destination (matching your `/app` prefix).
+        </p>
+        <button id="send-btn" class="bg-green-500 text-white py-2 px-4 rounded-lg shadow-md hover:bg-green-600 transition duration-150 font-medium disabled:opacity-50" disabled>
+            Send Test Message
+        </button>
+    </div>
+</div>
+
+
+<script>
+    // --- Global Variables ---
+    let stompClient = null;
+    const partyId = "cc684fd4-649e-4e45-9612-175e2a39b44b";
+    const SOCKET_ENDPOINT = "http://localhost:8081/ws"; // Matches registry.addEndpoint("/ws")
+    const APP_PREFIX = "/app";     // Matches registry.setApplicationDestinationPrefixes("/app")
+    const BROKER_TOPIC = `/topic/party.${partyId}`; // One of your enabled topics
+    // const BROKER_TOPIC = "/topic/chat.cc684fd4-649e-4e45-9612-175e2a39b44b"; // One of your enabled topics
+    // --- DOM Elements ---
+    const statusText = document.getElementById('status-text');
+    const statusIndicator = document.getElementById('status-indicator');
+    const statusCard = document.getElementById('status-card');
+    const connectBtn = document.getElementById('connect-btn');
+    const disconnectBtn = document.getElementById('disconnect-btn');
+    const sendBtn = document.getElementById('send-btn');
+
+    // --- Utility Functions ---
+
+    /**
+     * Updates the UI based on the current connection state.
+     * @param {string} status 'Connecting', 'Connected', 'Disconnected', 'Error'
+     */
+    function updateStatus(status) {
+        statusText.textContent = status;
+        statusText.className = 'ml-2 font-bold';
+
+        // Reset classes
+        statusIndicator.classList.remove('bg-gray-400', 'bg-yellow-500', 'bg-green-500', 'bg-red-500', 'animate-pulse');
+        statusCard.classList.remove('bg-gray-100', 'bg-yellow-100', 'bg-green-100', 'bg-red-100');
+
+        switch (status) {
+            case 'Connecting':
+                statusIndicator.classList.add('bg-yellow-500', 'animate-pulse');
+                statusText.classList.add('text-yellow-700');
+                statusCard.classList.add('bg-yellow-100');
+                connectBtn.disabled = true;
+                disconnectBtn.disabled = true;
+                sendBtn.disabled = true;
+                break;
+            case 'Connected':
+                statusIndicator.classList.add('bg-green-500');
+                statusText.classList.add('text-green-700');
+                statusCard.classList.add('bg-green-100');
+                connectBtn.disabled = true;
+                disconnectBtn.disabled = false;
+                sendBtn.disabled = false;
+                break;
+            case 'Disconnected':
+                statusIndicator.classList.add('bg-gray-400');
+                statusText.classList.add('text-gray-700');
+                statusCard.classList.add('bg-gray-100');
+                connectBtn.disabled = false;
+                disconnectBtn.disabled = true;
+                sendBtn.disabled = true;
+                break;
+            case 'Error':
+                statusIndicator.classList.add('bg-red-500');
+                statusText.classList.add('text-red-700');
+                statusCard.classList.add('bg-red-100');
+                connectBtn.disabled = false;
+                disconnectBtn.disabled = true;
+                sendBtn.disabled = true;
+                break;
+        }
+    }
+
+    // --- Core Connection Logic ---
+
+    /**
+     * Establishes a WebSocket/STOMP connection.
+     */
+    // async function connect() {
+    //     if (stompClient && stompClient.connected) {
+    //         console.warn("Connection already active.");
+    //         return;
+    //     }
+    //
+    //     console.log("%c[LIFECYCLE] Attempting to connect...", "color: blue; font-weight: bold;");
+    //     updateStatus('Connecting');
+    //
+    //     // 1. Create a SockJS instance using the configured endpoint.
+    //     const socket = new SockJS(SOCKET_ENDPOINT);
+    //     console.log(`[LIFECYCLE] SockJS created for endpoint: ${SOCKET_ENDPOINT}`);
+    //
+    //     // 2. Create the STOMP client.
+    //     stompClient = Stomp.over(socket);
+    //
+    //     // Turn off console logging from STOMP library for cleaner output
+    //     stompClient.debug = function(str) {
+    //         if (str.startsWith(">>>")) {
+    //             console.log(`%c[STOMP SENT] ${str}`, "color: purple");
+    //         } else if (str.startsWith("<<<")) {
+    //             console.log(`%c[STOMP RECEIVED] ${str}`, "color: teal");
+    //         } else {
+    //             console.info(`[STOMP DEBUG] ${str}`);
+    //         }
+    //     };
+    //     const jwtToken = await authenticate(); // <-- Await the token
+    //
+    //     // 3. Define connection callbacks.
+    //     const headers = {}; // Add headers here if needed (e.g., Auth tokens)
+    //     headers.Authorization = 'Bearer ' + jwtToken;
+    //
+    //     stompClient.connect(
+    //         headers,
+    //         // Success Callback (Connected)
+    //         function (frame) {
+    //             console.log(`%c[LIFECYCLE] STOMP Connection Successful!`, "color: green; font-weight: bold;");
+    //             console.log('FRAME:', frame);
+    //             updateStatus('Connected');
+    //
+    //             // 4. Test Subscription (to one of your Relay Broker topics)
+    //             console.log(`%c[SUBSCRIPTION] Subscribing to: ${BROKER_TOPIC}`, "color: orange");
+    //             stompClient.subscribe(BROKER_TOPIC, function (message) {
+    //                 console.log(`%c[MESSAGE RECEIVED] from ${BROKER_TOPIC}`, "color: darkorange; font-weight: bold;");
+    //                 console.log('Payload:', message.body);
+    //             });
+    //         },
+    //         // Error Callback (Disconnected/Error)
+    //         function (error) {
+    //             console.error("%c[LIFECYCLE] Connection Error / Disconnected unexpectedly.", "color: red; font-weight: bold;");
+    //             console.error('Error Details:', error);
+    //             updateStatus('Error');
+    //             stompClient = null; // Clean up client
+    //         }
+    //     );
+    // }
+    /**
+     * Establishes a WebSocket/STOMP connection.
+     */
+    async function connect() {
+        if (stompClient && stompClient.connected) {
+            console.warn("Connection already active.");
+            return;
+        }
+
+        console.log("%c[LIFECYCLE] Attempting to connect...", "color: blue; font-weight: bold;");
+        updateStatus('Connecting');
+
+        // --- FIX: STEP 1 ---
+        // Authenticate *BEFORE* creating the socket.
+        console.log("Attempting authentication...");
+        const jwtToken = await authenticate();
+
+        if (!jwtToken) {
+            console.error("Authentication failed or token was null. Connection aborted.");
+            updateStatus('Error');
+            return; // Stop if we don't have a token
+        }
+        console.log("Authentication successful, proceeding with WebSocket.");
+
+
+        // --- FIX: STEP 2 ---
+        // Now that we have the token, create the socket.
+        const socket = new SockJS(SOCKET_ENDPOINT+`?token=${jwtToken}`);
+        console.log(`[LIFECYCLE] SockJS created for endpoint: ${SOCKET_ENDPOINT}`);
+
+        // 2. Create the STOMP client.
+        stompClient = Stomp.over(socket);
+
+        // Turn off console logging from STOMP library for cleaner output
+        stompClient.debug = function(str) {
+            if (str.startsWith(">>>")) {
+                console.log(`%c[STOMP SENT] ${str}`, "color: purple");
+            } else if (str.startsWith("<<<")) {
+                console.log(`%c[STOMP RECEIVED] ${str}`, "color: teal");
+            } else {
+                console.info(`[STOMP DEBUG] ${str}`);
+            }
+        };
+
+        // --- FIX: STEP 3 ---
+        // Prepare the headers *before* connecting.
+        const headers = {};
+        headers.Authorization = 'Bearer ' + jwtToken;
+
+        // 3. Define connection callbacks.
+        stompClient.connect(
+            headers,
+            // Success Callback (Connected)
+            function (frame) {
+                console.log(`%c[LIFECYCLE] STOMP Connection Successful!`, "color: green; font-weight: bold;");
+                console.log('FRAME:', frame);
+                updateStatus('Connected');
+
+                // 4. Test Subscription (to one of your Relay Broker topics)
+                console.log(`%c[SUBSCRIPTION] Subscribing to: ${BROKER_TOPIC}`, "color: orange");
+                stompClient.subscribe(BROKER_TOPIC, function (message) {
+                    console.log(`%c[MESSAGE RECEIVED] from ${BROKER_TOPIC}`, "color: darkorange; font-weight: bold;");
+                    console.log('Payload:', message.body);
+                });
+                stompClient.subscribe('/user/queue/errors', (message) => {
+                    console.error('Error:', message.body);
+                });
+            },
+            // Error Callback (Disconnected/Error)
+            function (error) {
+                console.error("%c[LIFECYCLE] Connection Error / Disconnected unexpectedly.", "color: red; font-weight: bold;");
+                console.error('Error Details:', error);
+                updateStatus('Error');
+                stompClient = null; // Clean up client
+            }
+
+        );
+
+    }
+    /**
+     * Disconnects the STOMP connection.
+     */
+    function disconnect() {
+        if (stompClient) {
+            console.log("%c[LIFECYCLE] Attempting to disconnect...", "color: blue; font-weight: bold;");
+            stompClient.disconnect(function() {
+                console.log("%c[LIFECYCLE] Disconnection Complete.", "color: gray; font-weight: bold;");
+                updateStatus('Disconnected');
+                stompClient = null;
+            });
+        } else {
+            console.warn("No active connection to disconnect.");
+            updateStatus('Disconnected');
+        }
+    }
+
+    /**
+     * Sends a test message using the configured application prefix.
+     */
+    function sendTestMessage() {
+        if (!stompClient || !stompClient.connected) {
+            console.error("Cannot send message: Not connected.");
+            return;
+        }
+
+        // const destination = `${APP_PREFIX}/test`;
+        // const payload = JSON.stringify({
+        //     sender: 'Client Tester',
+        //     content: `Test message sent at ${new Date().toLocaleTimeString()}`
+        // });
+        //
+        // console.log(`%c[PUBLISH] Sending message to destination: ${destination}`, "color: green");
+        // console.log('Payload:', payload);
+        //
+        // stompClient.send(destination, {}, payload);
+        // Send sync event
+        const payload = {
+            event: 'CHANGEdsf_URL',
+            videoUrl: 'https://example.com/video.mp43343',
+            videoCurrentTime: 42.5,
+            eventDateTime: Date.now()
+        };
+
+        stompClient.send(`/app/party/${partyId}`, {}, JSON.stringify(payload));
+
+    }
+
+    // --- Event Listeners ---
+
+    window.onload = function() {
+        // Initial status setup
+        updateStatus('Disconnected');
+
+        // Attach listeners to buttons
+        connectBtn.addEventListener('click', connect);
+        disconnectBtn.addEventListener('click', disconnect);
+        sendBtn.addEventListener('click', sendTestMessage);
+
+        console.log("%c--- STOMP Tester Initialized ---", "font-size: 1.2em; color: darkblue;");
+        console.log(`Backend endpoint: ${window.location.protocol}//${window.location.host}${SOCKET_ENDPOINT}`);
+        console.log(`Test Topic: ${BROKER_TOPIC}`);
+        console.log(`App Prefix for sending: ${APP_PREFIX}`);
+        console.log("Use the 'Connect' button and monitor the network requests (websocket tab) and console log.");
+    };
+
+    // Make the core functions available globally for direct console use if needed
+    window.connectWs = connect;
+    window.disconnectWs = disconnect;
+    window.sendTestMessage = sendTestMessage;
+
+
+    async function authenticate() {
+        try {
+            const response = await fetch('http://localhost:8081/api/v1/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    email: "saint.maria@gmail.com",
+                    password: "123aA!"
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log('Authentication Success:', data);
+
+            // Check if the token exists where you expect it
+            if (data && data.data && data.data.token) {
+                return data.data.token; // Return the token
+            } else {
+                console.error("Token not found in response:", data);
+                return null; // Return null if token isn't there
+            }
+
+        } catch (error) {
+            console.error('Authentication Error:', error);
+            return null; // Return null on failure
+        }
+    }
+</script>
+
+</body>
+</html>

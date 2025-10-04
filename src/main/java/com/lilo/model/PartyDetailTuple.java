@@ -1,5 +1,6 @@
 package com.lilo.model;
 
+import com.lilo.model.dto.PartySyncEventInputDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,8 +10,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class PartyDetailTuple {
 	private int membersCount = 1;
-	private PartySyncMessage latestPartySyncMessage;
-	private PartySyncMessage previousPartySyncMessage;
+	private PartySyncEventInputDTO latestPartySyncEventInputDTO;
+	private PartySyncEventInputDTO previousPartySyncEventInputDTO;
 
 	public void incrementMembersCount() {
 		this.membersCount++;
@@ -20,7 +21,7 @@ public class PartyDetailTuple {
 		this.membersCount--;
 	}
 
-	public PartyDetailTuple(PartySyncMessage latestPartySyncMessage) {
-		this.latestPartySyncMessage = latestPartySyncMessage;
+	public PartyDetailTuple(PartySyncEventInputDTO latestPartySyncEventInputDTO) {
+		this.latestPartySyncEventInputDTO = latestPartySyncEventInputDTO;
 	}
 }

@@ -2,11 +2,7 @@ package com.lilo.model;
 
 import java.time.LocalDateTime;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -15,7 +11,6 @@ import lombok.NoArgsConstructor;
 @Table(name = "video")
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 public class Video {
 	@Id
 	@Column(name = "video_file_name")
@@ -25,14 +20,15 @@ public class Video {
 	private String videoName;
 
 	@Column(name = "user_id")
-	private long userId;
+	private Long userId;
 
 	private LocalDateTime timestamp;
 
-	@Transient
-	private String userName;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "user_id",insertable = false, updatable = false, foreignKey = @ForeignKey(name = "fk_video_user"))
+    private User user;
 
-	public Video(String videoFileName, String videoName, long userId, LocalDateTime timestamp) {
+	public Video(String videoFileName, String videoName, Long userId, LocalDateTime timestamp) {
 		this.videoFileName = videoFileName;
 		this.videoName = videoName;
 		this.userId = userId;

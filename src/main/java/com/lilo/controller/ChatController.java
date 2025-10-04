@@ -16,7 +16,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ChatController {
 //	private final SimpMessagingTemplate simpMessagingTemplate;
-
+/// TODO
+/// FIX THIS SHIT
 	@MessageMapping("/watch-party-chats/{id}")
 	@SendTo("/topic/chat.{id}")
 	private ChatMessage sendMessage(@Payload ChatMessage chatMessage, @DestinationVariable("id") String id) {

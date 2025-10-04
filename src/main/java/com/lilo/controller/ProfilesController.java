@@ -1,0 +1,38 @@
+package com.lilo.controller;
+
+import com.lilo.model.User;
+import com.lilo.model.dto.UserProfileOutputDTO;
+import com.lilo.service.UserService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Optional;
+
+@RequiredArgsConstructor
+@RequestMapping("/api/v1/profiles")
+@RestController
+public class ProfilesController extends BaseController {
+    private final UserService userService;
+
+    @GetMapping("/{userId}")
+    public ResponseEntity<?> getUserProfile(@PathVariable(name = "userId", required = true) long userId) {
+
+        Optional<User> storedUser = userService.findById(userId);
+        if (storedUser.isEmpty())
+            return buildErrorResponse(HttpStatus.NOT_FOUND, "User not found!");
+
+        UserProfileOutputDTO generatedUserProfile = UserProfileOutputDTO.builder().id(userId)
+                                                                                    .fullName(storedUser.get().getName())
+                                                                                    .email(storedUser.get().getEmail())
+                                                                                    .build();
+
+        return buildSuccessResponse(generatedUserProfile);
+    }
+
+
+}

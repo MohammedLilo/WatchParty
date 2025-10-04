@@ -6,12 +6,22 @@ import org.springframework.data.jpa.repository.Query;
 
 import com.lilo.model.User;
 
-public interface UserRepository extends JpaRepository<User, Long> {
-	User findByEmail(String email);
+import java.util.List;
+import java.util.Optional;
 
-	boolean existsByEmail(String email);
+public interface UserRepository extends JpaRepository<User, Long> {
+	Optional<User> findByEmail(String email);
+
+	boolean existsByEmailOrPhoneNumber(String email, String phoneNumber);
+    boolean existsByIdAndPartyIdIsNotNull(long id);
 
 	@Modifying
 	@Query("UPDATE User u SET u.partyId= NULL")
 	void nullifyPartyIdForAllUsers();
+
+    int countByPartyId(String partyId);
+
+    Optional<User> findFirstByPartyIdOrderByPartyJoinTimeAsc(String partyId);
+
+    List<User> findAllByPartyIdOrderByPartyJoinTime(String partyId);
 }
