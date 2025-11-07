@@ -2,7 +2,7 @@ package com.lilo.controller.websocket;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.lilo.enums.PartyEvent;
+import com.lilo.enums.PartyVideoEvent;
 import com.lilo.model.Party;
 import com.lilo.model.User;
 import com.lilo.model.dto.PartySyncEventInputDTO;
@@ -40,7 +40,7 @@ public class PartiesWebsocketController {
 
         String partySyncEventJSON = objectMapper.writeValueAsString(partySyncEventOutputDTO);
         storedParty.setLatestSyncEventJson(partySyncEventJSON);
-        if (partySyncEventInputDTO.getEvent() == PartyEvent.CHANGE_URL)
+        if (partySyncEventInputDTO.getEvent() == PartyVideoEvent.CHANGE_URL)
             storedParty.setCurrentVideoUrl(partySyncEventInputDTO.getVideoUrl());
 
         partiesService.update(storedParty);
@@ -50,4 +50,7 @@ public class PartiesWebsocketController {
         return partySyncEventOutputDTO;
 
     }
+
+
+
 }

@@ -7,7 +7,7 @@ public final class WebSocketConstants {
     public static final String TOPIC_PARTY_CHAT = "/topic/chat";
     public static final String PARTY_SYNC_EVENTS_SUBPATH = "/topic/sync-events";
     public static final String QUEUE_ERRORS = "/queue/errors";
-    public static final String PARTY_MEMBER_EVENTS_SUBPATH = "/topic/member-events";
+    public static final String TOPIC_PARTY_MEMBER_EVENTS = "/topic/member-events";
     public static final int PARTY_ID_LENGTH = 36;
     public static final int CHAT_ID_LENGTH = 36;
 }

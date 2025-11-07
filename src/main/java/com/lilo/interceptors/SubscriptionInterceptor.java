@@ -27,7 +27,7 @@ public class SubscriptionInterceptor implements ChannelInterceptor {
             try {
                 String destination = accessor.getDestination();
                 User authenticatedUser = tryAuthenticateUser(accessor);
-                if (destination.startsWith("topic")) {
+                if (destination.startsWith("/topic/party") || destination.startsWith("/topic/sync-events") || destination.startsWith("/topic/chat")) {
                     validateUserPartyRelationship(accessor, authenticatedUser);
                 }
             } catch (Exception e) {

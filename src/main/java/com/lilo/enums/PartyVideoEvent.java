@@ -1,5 +1,5 @@
 package com.lilo.enums;
 
-public enum PartyEvent {
+public enum PartyVideoEvent {
     PLAY, PAUSE, SEEK, CHANGE_URL
 }

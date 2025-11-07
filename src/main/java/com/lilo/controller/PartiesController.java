@@ -5,11 +5,12 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.lilo.enums.PartyEvent;
+import com.lilo.enums.PartyMemberEvent;
 import com.lilo.model.*;
 import com.lilo.model.dto.*;
 import com.lilo.operationResult.TableOperationResult;
 import com.lilo.service.PartiesService;
+import com.lilo.shared.WebSocketConstants;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -63,12 +64,12 @@ public class PartiesController extends BaseController {
             return buildErrorResponse(HttpStatus.CONFLICT, "User is already in a party");
 
         TableOperationResult userJoiningResult = partiesService.joinParty(joinPartyRequestDTO.getPartyId(), authenticatedUser);
-        if (!userJoiningResult.isSuccess())
-            return buildErrorResponse(userJoiningResult);
-        else {
+        if (userJoiningResult.isSuccess()) {
             PartyDetailsDTO partyDetails = partiesService.getPartyDetails(joinPartyRequestDTO.getPartyId());
+            simpMessagingTemplate.convertAndSend(WebSocketConstants.TOPIC_PARTY_MEMBER_EVENTS, new PartyMemberEventOutputDTO(authenticatedUser.getId(), PartyMemberEvent.JOINED, Instant.now()));
             return buildSuccessResponse(partyDetails);
         }
+        return buildErrorResponse(userJoiningResult);
     }
     //            simpMessagingTemplate.convertAndSend("/topic/watch-party." + partyId,
 //                    new PartySyncMessage(authenticatedUser.getId(), authenticatedUser.getName(), "join", null, null, System.currentTimeMillis()));
@@ -190,6 +191,7 @@ public class PartiesController extends BaseController {
             return ResponseEntity.noContent().build();
 
         partiesService.processUserLeave(authenticatedUser);
+        simpMessagingTemplate.convertAndSend(WebSocketConstants.TOPIC_PARTY_MEMBER_EVENTS, new PartyMemberEventOutputDTO(authenticatedUser.getId(), PartyMemberEvent.LEFT, Instant.now()));
         return ResponseEntity.noContent().build();
 //        partyDetailTupleMap.get(partyId).decrementMembersCount();
 //        PartyDetailTuple tuple = partyDetailTupleMap.get(partyId);

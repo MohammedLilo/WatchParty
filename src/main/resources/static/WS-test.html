@@ -56,7 +56,7 @@
 <script>
     // --- Global Variables ---
     let stompClient = null;
-    const partyId = "cc684fd4-649e-4e45-9612-175e2a39b44b";
+    const partyId = "f9acadf0-b3e2-42df-868b-e2a5b6f5c659";
     const SOCKET_ENDPOINT = "http://localhost:8081/ws"; // Matches registry.addEndpoint("/ws")
     const APP_PREFIX = "/app";     // Matches registry.setApplicationDestinationPrefixes("/app")
     const BROKER_TOPIC = `/topic/party.${partyId}`; // One of your enabled topics
@@ -244,8 +244,12 @@
                     console.log(`%c[MESSAGE RECEIVED] from ${BROKER_TOPIC}`, "color: darkorange; font-weight: bold;");
                     console.log('Payload:', message.body);
                 });
+                stompClient.subscribe('/topic/member-events', function (message) {
+                    console.log(`%c[MESSAGE RECEIVED] from /topic/member-events`, "color: darkorange; font-weight: bold;");
+                    console.log('Payload: '+ JSON.stringify(message.body));
+                });
                 stompClient.subscribe('/user/queue/errors', (message) => {
-                    console.error('Error:', message.body);
+                    console.error('Error:', JSON.stringify(message.body));
                 });
             },
             // Error Callback (Disconnected/Error)
@@ -297,8 +301,8 @@
         // stompClient.send(destination, {}, payload);
         // Send sync event
         const payload = {
-            event: 'CHANGEdsf_URL',
-            videoUrl: 'https://example.com/video.mp43343',
+            event: 'CHANGE_URL',
+            videoUrl: 'https://example.com/video.mp4',
             videoCurrentTime: 42.5,
             eventDateTime: Date.now()
         };
@@ -340,6 +344,7 @@
                 },
                 body: JSON.stringify({
                     email: "saint.maria@gmail.com",
+                    // email: "test2@gmail.com",
                     password: "123aA!"
                 })
             });
