@@ -71,22 +71,7 @@ public class PartiesController extends BaseController {
         }
         return buildErrorResponse(userJoiningResult);
     }
-    //            simpMessagingTemplate.convertAndSend("/topic/watch-party." + partyId,
-//                    new PartySyncMessage(authenticatedUser.getId(), authenticatedUser.getName(), "join", null, null, System.currentTimeMillis()));
-//            PartyDetailTuple tuple = partyDetailTupleMap.get(partyId);
-//            tuple.incrementMembersCount();
-//            new Thread(() -> {
-//                try {
-//                    TimeUnit.MILLISECONDS.sleep(1000);
-//                } catch (InterruptedException e) {
-//                    log.error(e.getMessage());
-//                }
-//                simpMessagingTemplate.convertAndSend("/topic/watch-party-members-count." + partyId,
-//                        tuple.getMembersCount());
-//            }).start();
-//            return ResponseEntity.status(HttpStatus.OK).body(calculateSyncInfo(partyId));
-//        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("user is already in a party");
-//    }
+
     @GetMapping("{partyId}")
     public ResponseEntity<?> getPartyDetails(@PathVariable("partyId") String partyId, @AuthenticationPrincipal User authenticatedUser) {
 
@@ -94,46 +79,11 @@ public class PartiesController extends BaseController {
             return buildErrorResponse(HttpStatus.FORBIDDEN, "User is not a member of this party");
 
         PartyDetailsDTO partyDetails = partiesService.getPartyDetails(partyId);
-        return ResponseEntity.ok(partyDetails);
+//        return ResponseEntity.ok(partyDetails);
+        return buildSuccessResponse(partyDetails);
     }
 
-//    private SyncNewUserMessage calculateSyncInfo(String partyId) {
-//        PartySyncEventInputDTO latestSyncMessage = partyDetailTupleMap.get(partyId).getLatestPartySyncEventInputDTO();
-//        SyncNewUserMessage syncNewUserMessage = new SyncNewUserMessage();
-//        PartyEvent event = latestSyncMessage.getEvent();
-//        PartyDetailTuple tuple = this.partyDetailTupleMap.get(partyId);
-//        switch (event) {
-//            case PLAY:
-//                syncNewUserMessage.setEvent("play");
-//                syncNewUserMessage.setVideoCurrentTime(latestSyncMessage.getVideoCurrentTime());
-//                syncNewUserMessage.setEventDateTime(latestSyncMessage.getEventDateTime());
-//                syncNewUserMessage.setVideoUrl(latestSyncMessage.getVideoUrl());
-//
-//                break;
-//            case PAUSE:
-//                syncNewUserMessage.setEvent("pause");
-//                syncNewUserMessage.setVideoCurrentTime(latestSyncMessage.getVideoCurrentTime());
-//                syncNewUserMessage.setVideoUrl(latestSyncMessage.getVideoUrl());
-//
-//                break;
-//            case SEEK:
-//                syncNewUserMessage.setEvent("seeked");
-//                syncNewUserMessage.setPreviousEvent(tuple.getPreviousPartySyncEventInputDTO().getEvent());
-//                syncNewUserMessage.setVideoCurrentTime(latestSyncMessage.getVideoCurrentTime());
-//                syncNewUserMessage.setEventDateTime(latestSyncMessage.getEventDateTime());
-//                syncNewUserMessage.setVideoUrl(latestSyncMessage.getVideoUrl());
-//                break;
-//            case CHANGE_URL:
-//                syncNewUserMessage.setEvent("url");
-//                syncNewUserMessage.setEventDateTime(latestSyncMessage.getEventDateTime());
-//                syncNewUserMessage.setVideoUrl(latestSyncMessage.getVideoUrl());
-//                break;
-//            default:
-//                throw new RuntimeException("unexpected event happened!");
-//        }
-//
-//        return syncNewUserMessage;
-//    }
+
 
     @PostMapping
     public ResponseEntity<?> createWatchParty(@Valid @RequestBody PartyInputDTO partyInputDTO, BindingResult bindingResult, @AuthenticationPrincipal User authenticatedUser) {
@@ -157,31 +107,6 @@ public class PartiesController extends BaseController {
                 .toUri();
         return ResponseEntity.created(location).body(ApiResponse.withSuccess(newParty));
     }
-//            partyDetailTupleMap.put(authenticatedUser.getPartyId(), new PartyDetailTuple());
-//            String partyId = authenticatedUser.getPartyId();
-//            new Thread(() -> {
-//                try {
-//                    TimeUnit.MILLISECONDS.sleep(1000);
-//                } catch (InterruptedException e) {
-//                    log.error(e.getMessage());
-//                }
-//                simpMessagingTemplate.convertAndSend("/topic/watch-party-members-count." + partyId,
-//                        partyDetailTupleMap.get(partyId).getMembersCount());
-//            }).start();
-
-//        return buildSuccessResponse(HttpStatus.CREATED, newParty);
-//    }
-
-//    @MessageMapping("/watch-parties/{id}")
-//    @SendTo("/topic/watch-party.{id}")
-//    PartySyncMessage handleSync(@Payload PartySyncMessage partySyncMessage, @DestinationVariable("id") String id) {
-//        if (!partySyncMessage.getEvent().equals("join") && !partySyncMessage.getEvent().equals("left")) {
-//            PartyDetailTuple tuple = partyDetailTupleMap.get(id);
-//            tuple.setPreviousPartySyncMessage(tuple.getLatestPartySyncMessage());
-//            tuple.setLatestPartySyncMessage(partySyncMessage);
-//        }
-//        return partySyncMessage;
-//    }
 
     @DeleteMapping("/leave")
     @ResponseBody
@@ -193,18 +118,6 @@ public class PartiesController extends BaseController {
         partiesService.processUserLeave(authenticatedUser);
         simpMessagingTemplate.convertAndSend(WebSocketConstants.TOPIC_PARTY_MEMBER_EVENTS, new PartyMemberEventOutputDTO(authenticatedUser.getId(), PartyMemberEvent.LEFT, Instant.now()));
         return ResponseEntity.noContent().build();
-//        partyDetailTupleMap.get(partyId).decrementMembersCount();
-//        PartyDetailTuple tuple = partyDetailTupleMap.get(partyId);
-//        PartySyncMessage partySyncMessage = new PartySyncMessage(user.getId(), user.getName(), "left", null, null,
-//                System.currentTimeMillis());
-//        new Thread(() -> {
-//            simpMessagingTemplate.convertAndSend("/topic/watch-party-members-count." + partyId,
-//                    tuple.getMembersCount());
-//        }).start();
-//
-//        // notify other party members that a user (name) left the party
-//        simpMessagingTemplate.convertAndSend("/topic/watch-party." + partyId, partySyncMessage);
-//        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
 //    @EventListener(classes = SessionDisconnectEvent.class)

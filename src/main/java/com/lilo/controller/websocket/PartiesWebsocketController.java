@@ -44,11 +44,7 @@ public class PartiesWebsocketController {
             storedParty.setCurrentVideoUrl(partySyncEventInputDTO.getVideoUrl());
 
         partiesService.update(storedParty);
-//            PartyDetailTuple tuple = partyDetailTupleMap.get(id);
-//            tuple.setPreviousPartySyncMessage(tuple.getLatestPartySyncMessage());
-//            tuple.setLatestPartySyncMessage(partySyncMessage);
         return partySyncEventOutputDTO;
-
     }
 
 

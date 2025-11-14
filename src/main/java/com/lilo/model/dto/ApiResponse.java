@@ -18,7 +18,7 @@ public class ApiResponse<T> {
     private ApiResponse(boolean isSuccess, T data, ApiError... apiErrors) {
         this.isSuccess = isSuccess;
         this.data = data;
-        this.errors = (apiErrors == null) ? null : Arrays.asList(apiErrors);
+        this.errors = (apiErrors == null || apiErrors[0] == null) ? null : Arrays.asList(apiErrors);
     }
 
     private ApiResponse(boolean isSuccess, T data, List<ApiError> apiErrors) {

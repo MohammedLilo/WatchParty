@@ -7,7 +7,6 @@ import com.lilo.model.dto.PartyMemberDTO;
 import com.lilo.operationResult.TableOperationResult;
 import com.lilo.repository.PartiesRepository;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.validation.constraints.NotEmpty;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
