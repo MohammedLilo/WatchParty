@@ -8,6 +8,7 @@ import com.lilo.model.User;
 import com.lilo.model.dto.PartySyncEventInputDTO;
 import com.lilo.model.dto.PartySyncEventOutputDTO;
 import com.lilo.service.PartiesService;
+import com.lilo.shared.WebSocketConstants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -25,7 +26,8 @@ public class PartiesWebsocketController {
     private final ObjectMapper objectMapper;
 
     @MessageMapping("/party/{id}")
-    @SendTo("/topic/party.{id}")
+//    @SendTo("/topic/party.{id}")
+    @SendTo(WebSocketConstants.TOPIC_PARTY + ".{id}")
     PartySyncEventOutputDTO handleSync(@Payload PartySyncEventInputDTO partySyncEventInputDTO, @DestinationVariable("id") String id, Authentication authentication) throws JsonProcessingException {
 
         User authenticatedUser = (User) authentication.getPrincipal();

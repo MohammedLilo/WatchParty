@@ -3,17 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Watch Party</title>
+    <title>Watch Party & Chat</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <style>
+        /* Custom scrollbar for chat */
+        .chat-scroll::-webkit-scrollbar { width: 6px; }
+        .chat-scroll::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.1); }
+        .chat-scroll::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.3); border-radius: 3px; }
+        .chat-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.5); }
+    </style>
 </head>
-<body class="bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 min-h-screen">
+<body class="bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 min-h-screen text-white font-sans">
 
 <div id="login-screen" class="min-h-screen flex items-center justify-center p-4">
     <div class="bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl p-8 w-full max-w-md border border-white/20">
         <h1 class="text-4xl font-bold text-white mb-2 text-center">Watch Party</h1>
-        <p class="text-purple-200 text-center mb-8">Watch videos together in sync</p>
+        <p class="text-purple-200 text-center mb-8">Watch & Chat Together</p>
 
         <div id="login-error" class="hidden bg-red-500/20 border border-red-500 text-red-200 px-4 py-3 rounded-lg mb-4"></div>
 
@@ -93,11 +100,11 @@
 </div>
 
 <div id="video-screen" class="hidden min-h-screen p-4">
-    <div class="max-w-6xl mx-auto">
-        <div class="bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl p-4 mb-4 border border-white/20 flex justify-between items-center">
+    <div class="max-w-[1600px] mx-auto h-[calc(100vh-2rem)] flex flex-col gap-4">
+        <div class="bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl p-4 border border-white/20 flex justify-between items-center shrink-0">
             <div>
                 <h2 class="text-2xl font-bold text-white" id="party-name-display">Watch Party</h2>
-                <p class="text-purple-200 text-sm">Party ID: <span id="party-id-display" class="font-mono">-</span></p>
+                <p class="text-purple-200 text-sm">Party ID: <span id="party-id-display" class="font-mono select-all">-</span></p>
             </div>
             <button id="leave-party-btn"
                     class="bg-red-500 text-white font-semibold py-2 px-6 rounded-lg hover:bg-red-600 transition">
@@ -105,27 +112,59 @@
             </button>
         </div>
 
-        <div class="bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl p-6 mb-4 border border-white/20">
-            <video id="video-player" class="w-full rounded-lg bg-black mb-4" controls>
-                Your browser does not support the video tag.
-            </video>
+        <div class="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-4 min-h-0">
 
-            <div class="flex gap-3">
-                <input type="text" id="video-url-input"
-                       class="flex-1 px-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-purple-400"
-                       placeholder="Enter video URL (e.g., https://example.com/video.mp4)">
-                <button id="load-video-btn"
-                        class="bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold py-3 px-6 rounded-lg hover:from-purple-600 hover:to-pink-600 transition">
-                    Load Video
-                </button>
-            </div>
-        </div>
+            <div class="lg:col-span-3 flex flex-col gap-4 h-full overflow-y-auto">
+                <div class="bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl p-4 border border-white/20 flex-1 flex flex-col justify-center">
+                    <video id="video-player" class="w-full max-h-full rounded-lg bg-black shadow-lg" controls>
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
 
-        <div class="bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl p-6 border border-white/20">
-            <h3 class="text-xl font-bold text-white mb-4">Party Members</h3>
-            <div id="members-list" class="space-y-2">
-                <p class="text-purple-200">Loading members...</p>
+                <div class="bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl p-6 border border-white/20 shrink-0">
+                    <div class="flex gap-3">
+                        <input type="text" id="video-url-input"
+                               class="flex-1 px-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-purple-400"
+                               placeholder="Enter video URL (e.g., https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4)">
+                        <button id="load-video-btn"
+                                class="bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold py-3 px-6 rounded-lg hover:from-purple-600 hover:to-pink-600 transition whitespace-nowrap">
+                            Load Video
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl p-4 border border-white/20 shrink-0">
+                    <h3 class="text-lg font-bold text-white mb-2">Party Members</h3>
+                    <div id="members-list" class="flex flex-wrap gap-2">
+                        <p class="text-purple-200">Loading members...</p>
+                    </div>
+                </div>
             </div>
+
+            <div class="lg:col-span-1 flex flex-col h-full bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/20 overflow-hidden">
+                <div class="p-4 border-b border-white/10 bg-white/5">
+                    <h3 class="font-bold text-lg flex items-center gap-2">
+                        <span>💬</span> Live Chat
+                    </h3>
+                </div>
+
+                <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-3 chat-scroll flex flex-col">
+                    <div class="text-center text-white/30 text-sm mt-4">Welcome to the chat!</div>
+                </div>
+
+                <div class="p-3 border-t border-white/10 bg-white/5">
+                    <form id="chat-form" class="flex gap-2">
+                        <input type="text" id="chat-input"
+                               class="flex-1 bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-sm text-white placeholder-white/40 focus:outline-none focus:ring-1 focus:ring-purple-400"
+                               placeholder="Type a message..." autocomplete="off">
+                        <button type="submit"
+                                class="bg-purple-500 hover:bg-purple-600 text-white rounded-lg px-3 py-2 transition">
+                            ➤
+                        </button>
+                    </form>
+                </div>
+            </div>
+
         </div>
     </div>
 </div>
@@ -137,13 +176,15 @@
     let currentUser = null;
     let currentParty = null;
     let stompClient = null;
+
+    // Config
     const API_BASE = 'http://localhost:8081/api/v1';
     const WS_ENDPOINT = 'http://localhost:8081/ws';
+    const TOPIC_CHAT_PREFIX = '/topic/chat.';  // Assumption based on @SendTo in controller
 
     // --- START: Applied Sync Logic Variables ---
     let eventOwnerId;
     let isJoining = false;
-    let lastEventTime = 0; // (From your snippet, though not used in sendVideoEvent)
     // --- END: Applied Sync Logic Variables ---
 
     // DOM elements
@@ -155,7 +196,10 @@
     const createModal = document.getElementById('create-modal');
     const videoPlayer = document.getElementById('video-player');
 
-    // (Login, Create Party, Join Party functions remain unchanged)
+    // Chat DOM elements
+    const chatMessages = document.getElementById('chat-messages');
+    const chatForm = document.getElementById('chat-form');
+    const chatInput = document.getElementById('chat-input');
 
     // Login functionality
     document.getElementById('login-btn').addEventListener('click', async () => {
@@ -183,10 +227,7 @@
             authToken = data.data.token;
             currentUser = data.data;
 
-            // --- START: Applied Sync Logic ---
-            // Set the initial event owner ID, as per your snippet's logic
-            eventOwnerId = currentUser.id;
-            // --- END: Applied Sync Logic ---
+            eventOwnerId = currentUser.id; // Initial sync logic
 
             loginScreen.classList.add('hidden');
             partyScreen.classList.remove('hidden');
@@ -290,11 +331,13 @@
         document.getElementById('party-name-display').textContent = currentParty.partyName || 'Watch Party';
         document.getElementById('party-id-display').textContent = currentParty.id;
 
+        // Clear previous chat messages
+        chatMessages.innerHTML = '<div class="text-center text-white/30 text-sm mt-4">Welcome to the chat!</div>';
+
         // Connect WebSocket
         await connectWebSocket();
 
         // --- START: Applied Sync Logic ---
-        // Load initial video state using the logic from `handleFirstEvent`
         if (currentParty.latestSyncEventPayload) {
             try {
                 const syncEvent = JSON.parse(currentParty.latestSyncEventPayload);
@@ -307,7 +350,6 @@
         }
         // --- END: Applied Sync Logic ---
 
-        // Update members list (initial fetch)
         updateMembersList();
     }
 
@@ -324,36 +366,33 @@
                 (frame) => {
                     console.log('WebSocket connected');
 
-                    // Subscribe to party-specific video sync events
+                    // 1. Subscribe to VIDEO SYNC
                     stompClient.subscribe(`/topic/party.${currentParty.id}`, (message) => {
                         const event = JSON.parse(message.body);
-
-                        // --- START: Applied Sync Logic ---
-                        // Update eventOwnerId based on incoming message
-                        // Note: Your server sends uppercase enums (e.g., 'PLAY', 'LEFT')
                         if (event.event !== 'JOIN' && event.event !== 'LEFT') {
                             eventOwnerId = event.userId;
                         }
-                        // --- END: Applied Sync Logic ---
-
-                        handleVideoEvent(event); // Use the new handler
+                        handleVideoEvent(event);
                     });
 
-                    // Subscribe to member events
+                    // 2. Subscribe to MEMBER events
                     stompClient.subscribe('/topic/member-events', (message) => {
-                        console.log('Member event:', message.body);
-                        if (currentParty) {
-                            updateMembersList();
-                        }
+                        if (currentParty) updateMembersList();
+                    });
+
+                    // 3. Subscribe to CHAT
+                    // Your controller sends to TOPIC_PARTY_CHAT + "." + id
+                    // Assuming TOPIC_PARTY_CHAT is "/topic/chat"
+                    stompClient.subscribe(`${TOPIC_CHAT_PREFIX}${currentParty.id}`, (message) => {
+                        const chatMsg = JSON.parse(message.body);
+                        displayChatMessage(chatMsg);
                     });
 
                     // --- START: Applied Sync Logic ---
-                    // Add video event listeners as per your snippet
                     videoPlayer.addEventListener('play', sendVideoEvent);
                     videoPlayer.addEventListener('pause', sendVideoEvent);
                     videoPlayer.addEventListener('seeked', sendVideoEvent);
                     // --- END: Applied Sync Logic ---
-
 
                     resolve();
                 },
@@ -365,35 +404,73 @@
         });
     }
 
-    // Load video
+    // --- CHAT LOGIC ---
+
+    chatForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const messageContent = chatInput.value.trim();
+
+        if (messageContent && stompClient) {
+            // Prepare the payload based on ChatMessageInputDTO
+            const payload = {
+                content: messageContent
+            };
+
+            // Send to the destination mapped in your controller: @MessageMapping("/watchParty-chats/{id}")
+            // Standard Prefix is usually /app
+            stompClient.send(`/app/watchParty-chats/${currentParty.id}`, {}, JSON.stringify(payload));
+
+            chatInput.value = ''; // Clear input
+        }
+    });
+
+    function displayChatMessage(msg) {
+        const isMe = msg.senderId === currentUser.id; // Assuming DTO has senderId, or adjust logic
+        console.log(msg)
+        // If DTO doesn't have senderId directly, we might need to check username
+        // Based on typical DTO: senderName, content, timestamp
+        const isMeByName = msg.senderName === currentUser.name; // Fallback check
+
+        const alignClass = (isMe || isMeByName) ? 'self-end items-end' : 'self-start items-start';
+        const bgClass = (isMe || isMeByName) ? 'bg-purple-600 text-white' : 'bg-white/10 text-white';
+        const nameDisplay = (isMe || isMeByName) ? 'You' : msg.senderName;
+
+        const msgElement = document.createElement('div');
+        msgElement.className = `flex flex-col max-w-[85%] ${alignClass}`;
+        msgElement.innerHTML = `
+            <span class="text-[10px] text-white/50 mb-0.5 px-1">${nameDisplay}</span>
+            <div class="${bgClass} px-3 py-2 rounded-xl shadow-sm text-sm break-words">
+                ${escapeHtml(msg.content)}
+            </div>
+        `;
+
+        chatMessages.appendChild(msgElement);
+        chatMessages.scrollTop = chatMessages.scrollHeight; // Auto scroll to bottom
+    }
+
+    function escapeHtml(text) {
+        if (!text) return "";
+        return text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    // --- VIDEO LOGIC ---
+
     document.getElementById('load-video-btn').addEventListener('click', () => {
         const videoUrl = document.getElementById('video-url-input').value;
-
         if (!videoUrl) {
             alert('Please enter a video URL');
             return;
         }
-
-        // --- START: Applied Sync Logic ---
-        // Use the sendVideoUrl function
         sendVideoUrl(currentParty.id, videoUrl);
-
-        // Apply locally
         videoPlayer.src = videoUrl;
         videoPlayer.load();
-        // --- END: Applied Sync Logic ---
     });
 
-    // (Original loadVideo function is no longer needed,
-    //  as logic is in handleFirstEvent/handleVideoEvent)
-
-
-    // --- START: Applied Sync Logic Functions ---
-
-    /**
-     * Handles the initial synchronization for a user joining the party.
-     * Calculates time offset to sync with the party.
-     */
     function handleFirstEvent(syncNewUserMessage) {
         let videoCurrentTime = syncNewUserMessage.videoCurrentTime;
         let eventDateTime = syncNewUserMessage.eventDateTime;
@@ -401,11 +478,9 @@
 
         const myTime = new Date().valueOf();
         const offset = (myTime - eventDateTime) / 1000;
-        console.log('Joining offset is : ' + offset);
 
-        isJoining = true; // Set flag to prevent local events from firing
+        isJoining = true;
 
-        // Note: Switched to uppercase to match your server's enums
         switch (syncNewUserMessage.event) {
             case 'PLAY':
                 videoPlayer.src = videoUrl;
@@ -423,9 +498,7 @@
                 videoPlayer.src = videoUrl;
                 videoPlayer.load();
                 videoPlayer.currentTime = videoCurrentTime;
-                // Note: Your snippet had 'previousEvent', which is not in the DTO.
-                // Re-applying offset logic if it was playing.
-                if (syncNewUserMessage.previousEvent === 'PLAY') { // Assuming this field exists
+                if (syncNewUserMessage.previousEvent === 'PLAY') {
                     videoPlayer.currentTime = videoCurrentTime + offset;
                     videoPlayer.play();
                 }
@@ -436,33 +509,14 @@
                 break;
         }
 
-        // Use timeout to clear the flag after events settle
-        setTimeout(() => {
-            isJoining = false;
-        }, 500); // 500ms buffer
+        setTimeout(() => { isJoining = false; }, 500);
     }
 
-    /**
-     * Handles incoming video sync events from other users.
-     */
     function handleVideoEvent(syncMessage) {
-        // Echo prevention: If this message is from the current user, ignore it.
-        if (syncMessage.userId === currentUser.id) {
-            return;
-        }
+        if (syncMessage.userId === currentUser.id) return;
 
-        // (Chat/Join/Left logic is not in your snippet's handleVideoEvent,
-        //  but I'll keep it here as it's separate logic.)
-        // Note: Your server sends uppercase 'JOIN'/'LEFT'
-        if (syncMessage.event === 'LEFT' || syncMessage.event === 'JOIN') {
-            console.log(`Member event: ${syncMessage.name} ${syncMessage.event}`);
-            // This is handled by /topic/member-events, so this block may be redundant
-            // But we'll leave it in case of other event streams.
-            return;
-        }
+        if (syncMessage.event === 'LEFT' || syncMessage.event === 'JOIN') return;
 
-        // Apply video event
-        // Note: Using uppercase events to match your server
         switch (syncMessage.event) {
             case 'PLAY':
                 videoPlayer.currentTime = syncMessage.videoCurrentTime;
@@ -478,50 +532,36 @@
             case 'CHANGE_URL':
                 videoPlayer.src = syncMessage.videoUrl;
                 videoPlayer.load();
-                videoPlayer.play(); // Auto-play on new URL
+                videoPlayer.play();
                 break;
         }
     }
 
-    /**
-     * Sends the user's local video events (play, pause, seek) to the server.
-     * Includes logic to prevent event loops.
-     */
     function sendVideoEvent(event) {
-        // Logic from your snippet to prevent echo loops
         if (eventOwnerId !== currentUser.id) {
-            console.log('Event owner mismatch, resetting. Event not sent.');
             eventOwnerId = currentUser.id;
             return;
         }
+        if (isJoining) return;
 
-        // Logic from your snippet to prevent events firing on join
-        if (isJoining) {
-            console.log('Just joined, ignoring local event.');
-            return;
-        }
-
-        const eventType = event.type.toUpperCase(); // 'play' -> 'PLAY'
+        const eventType = event.type.toUpperCase();
 
         const syncMessage = {
-            event: eventType, // 'PLAY', 'PAUSE', 'SEEK'
+            event: eventType,
             videoCurrentTime: videoPlayer.currentTime,
             videoUrl: videoPlayer.src,
-            userId: currentUser.id, // Use the logged-in user's ID
+            userId: currentUser.id,
             eventDateTime: new Date().valueOf()
         };
 
         stompClient.send(`/app/party/${currentParty.id}`, {}, JSON.stringify(syncMessage));
     }
 
-    /**
-     * Sends a URL change event to the server.
-     */
     function sendVideoUrl(partyId, videoUrl) {
         const syncMessage = {
-            event: 'CHANGE_URL', // Use uppercase enum
+            event: 'CHANGE_URL',
             videoUrl: videoUrl,
-            videoCurrentTime: 0, // Reset time on new URL
+            videoCurrentTime: 0,
             userId: currentUser.id,
             userName: currentUser.name || currentUser.email,
             eventDateTime: new Date().valueOf()
@@ -529,40 +569,30 @@
         stompClient.send(`/app/party/${partyId}`, {}, JSON.stringify(syncMessage));
     }
 
-    // --- END: Applied Sync Logic Functions ---
-
-
     // Update members list
     async function updateMembersList() {
         try {
             await getAndUpdatePartyDetails(currentParty.id);
-
             const members = currentParty.members || [];
             const membersList = document.getElementById('members-list');
-
-            // Use 'username' and 'userId' from PartyMemberDTO
             membersList.innerHTML = members.map(member => `
-                    <div class="bg-white/5 rounded-lg p-3 text-white">
-                        <span class="font-medium">${member.name}</span>
-                        ${member.userId === currentParty.ownerUserId ? '<span class="text-yellow-400 text-sm ml-2">👑 Host</span>' : ''}
+                    <div class="bg-white/5 rounded-lg px-3 py-1 text-white flex items-center gap-2 border border-white/10">
+                        <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                        <span class="font-medium text-sm">${member.name}</span>
+                        ${member.userId === currentParty.ownerUserId ? '<span class="text-yellow-400 text-xs" title="Host">👑</span>' : ''}
                     </div>
                 `).join('');
         } catch (error) {
             console.error('Failed to update members:', error);
-            const membersList = document.getElementById('members-list');
-            membersList.innerHTML = '<p class="text-red-300">Failed to load members.</p>';
         }
     }
 
     // Leave party
     document.getElementById('leave-party-btn').addEventListener('click', async () => {
         try {
-            // --- START: Applied Sync Logic ---
-            // Remove video listeners on leave
             videoPlayer.removeEventListener('play', sendVideoEvent);
             videoPlayer.removeEventListener('pause', sendVideoEvent);
             videoPlayer.removeEventListener('seeked', sendVideoEvent);
-            // --- END: Applied Sync Logic ---
 
             await fetch(`${API_BASE}/parties/leave`, {
                 method: 'DELETE',
@@ -574,35 +604,22 @@
             }
             stompClient = null;
 
-            // Reset UI
             videoScreen.classList.add('hidden');
             partyScreen.classList.remove('hidden');
             currentParty = null;
-            videoPlayer.src = ''; // Clear video source
+            videoPlayer.src = '';
         } catch (error) {
             console.error('Failed to leave party:', error);
-            alert('Failed to leave party. Please refresh.');
         }
     });
 
-    // Utility functions
-    function showError(element, message) {
-        element.textContent = message;
-        element.classList.remove('hidden');
-        setTimeout(() => element.classList.add('hidden'), 5000);
-    }
-
-    // Handle Enter key on login
+    // Key Handlers
     document.getElementById('password-input').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') document.getElementById('login-btn').click();
     });
-
-    // Handle Enter key on party ID
     document.getElementById('party-id-input').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') document.getElementById('join-party-btn').click();
     });
-
-    // Handle Enter key on party name
     document.getElementById('party-name-input').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') document.getElementById('create-confirm-btn').click();
     });
