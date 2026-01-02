@@ -19,5 +19,9 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addResourceHandler(WebConstants.videosUrlPattern)
                 .addResourceLocations(FileStorageService.ROOT.toUri().toString())
                 .setCachePeriod(3600);
+
+        registry.addResourceHandler(WebConstants.profilePictureUrlPattern)
+                .addResourceLocations(FileStorageService.ROOT.toUri().toString())
+                .setCachePeriod(3600);
     }
 }

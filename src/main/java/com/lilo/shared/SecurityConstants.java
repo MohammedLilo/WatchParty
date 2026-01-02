@@ -12,6 +12,7 @@ public class SecurityConstants {
                                         ,"/ws/**"
                                         ,WebConstants.thumbnailsUrlPattern
                                         ,WebConstants.videosUrlPattern
+                                        ,WebConstants.profilePictureUrlPattern
                                         };
 
 }

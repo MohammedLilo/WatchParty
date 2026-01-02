@@ -37,6 +37,9 @@ public class User implements UserDetails {
     @Column(name = "party_join_time")
     private Instant partyJoinTime;
 
+    @Column(name = "profile_picture")
+    private String profilePicture;
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "users_roles",

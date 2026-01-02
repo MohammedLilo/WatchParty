@@ -10,15 +10,18 @@ import com.lilo.repository.UserRepository;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
-
+    private final FileStorageService fileStorageService;
     @Override
     public Optional<User> findById(long id) {
         return userRepository.findById(id);
@@ -37,6 +40,14 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<User> findAllByPartyIdOrderByJoinTime(String partyId) {
         return userRepository.findAllByPartyIdOrderByPartyJoinTime(partyId);
+    }
+
+    @Override
+    public void updateProfilePicture(User user, MultipartFile multipartFile) throws IOException {
+        String fileName = UUID.randomUUID().toString();
+        fileStorageService.save(fileName, multipartFile);
+        user.setProfilePicture(fileName);
+        userRepository.save(user);
     }
 
     @Override
