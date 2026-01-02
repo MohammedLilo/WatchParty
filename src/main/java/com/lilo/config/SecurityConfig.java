@@ -1,6 +1,7 @@
 package com.lilo.config;
 
 import java.time.Duration;
+import java.util.Arrays;
 
 import com.lilo.security.JwtAuthenticationEntryPoint;
 import com.lilo.security.JwtFilter;
@@ -73,10 +74,14 @@ private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 				config.addAllowedHeader("*");
 //				config.addAllowedOrigin("*");
 				config.setAllowCredentials(true);
-                config.addAllowedOrigin("http://127.0.0.1:5500");
-                config.addAllowedOrigin("http://localhost:5500");
-                config.addAllowedOrigin("null"); // For file:/// origins
-
+//                config.addAllowedOrigin("http://127.0.0.1:5500");
+//                config.addAllowedOrigin("http://localhost:5500");
+//                config.addAllowedOrigin("null"); // For file:/// origins
+                config.setAllowedOriginPatterns(Arrays.asList(
+                        "http://localhost:*",
+                        "http://127.0.0.1:*",
+                        "null"
+                ));
 				config.setMaxAge(Duration.ofSeconds(120));
 				return config;
 			}
