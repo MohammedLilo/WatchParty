@@ -8,6 +8,7 @@ import com.lilo.security.AuthService;
 import com.lilo.service.UserService;
 import com.lilo.service.VideoService;
 import com.lilo.service.FileStorageService;
+import com.lilo.shared.WebConstants;
 import com.lilo.shared.annotations.AllowedValues;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -25,6 +26,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.io.IOException;
 import java.net.URI;
@@ -78,8 +80,10 @@ public class VideoController extends BaseController {
                                         @RequestParam(name = "size", defaultValue = "6") int size,
                                         @RequestParam(name = "sortBy", defaultValue = "timestamp") @AllowedValues(values = {"timestamp","videoName"}) String sortBy) {
 
+        String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
+
         Page<VideoOutputDTO> storedVideosPage = videoService.findAll(pageNumber, size, Sort.by(Order.desc(sortBy)))
-                                                            .map(VideoOutputDTO::fromVideo);
+                                                            .map(v-> VideoOutputDTO.fromVideo(v, baseUrl));
         return ResponseEntity.ok(storedVideosPage);
     }
 
@@ -93,10 +97,14 @@ public class VideoController extends BaseController {
 
         Video newVideo = videoService.save(multipartFile, authenticatedUserId, videoName);
         var response = ApiResponse.withSuccess("video uploaded successfully.");
-        URI location = MvcUriComponentsBuilder
-                .fromMethodCall(on(VideoController.class).loadVideo(newVideo.getVideoFileName()))
+
+        String path = WebConstants.videosUrlPattern.replace("**", "");
+        URI location = ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path(path)
+                .path(newVideo.getVideoFileName())
                 .build()
                 .toUri();
+
         return ResponseEntity.created(location)
                 .body(response);
     }
