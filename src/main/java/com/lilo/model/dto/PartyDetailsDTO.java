@@ -17,5 +17,7 @@ public class PartyDetailsDTO {
     private String ownerName;
     private String currentVideoUrl;
     private String latestSyncEventPayload;
+    private boolean isPrivate;
+    private String thumbnailUrl;
     private List<PartyMemberDTO> members;
 }

@@ -7,7 +7,7 @@ import com.lilo.operationResult.TableOperationResult;
 import com.lilo.security.AuthService;
 import com.lilo.service.UserService;
 import com.lilo.service.VideoService;
-import com.lilo.service.VideoStorageService;
+import com.lilo.service.FileStorageService;
 import com.lilo.shared.annotations.AllowedValues;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -37,7 +37,7 @@ import static org.springframework.web.servlet.mvc.method.annotation.MvcUriCompon
 @Validated
 public class VideoController extends BaseController {
 	private final VideoService videoService;
-	private final VideoStorageService videoStorageService;
+	private final FileStorageService fileStorageService;
 	private final UserService userService;
     private final AuthService authService;
 
@@ -72,7 +72,7 @@ public class VideoController extends BaseController {
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(ApiResponse.withError(HttpStatus.NOT_FOUND.value(), "Video not found!"));
 
-        Resource storedResource = videoStorageService.load(fileName);
+        Resource storedResource = fileStorageService.load(fileName);
 
         return ResponseEntity.ok(storedResource);
 	}

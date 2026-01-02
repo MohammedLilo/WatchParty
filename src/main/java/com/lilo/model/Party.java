@@ -42,10 +42,12 @@ public class Party {
     @Column(name = "created_at", updatable = false)
     private Instant createdAt;
 
+    @Column(name = "thumbnail_file_name")
+    private String thumbnailFileName;
     public Party(long ownerUserId, String partyName) {
         this.id = UUID.randomUUID().toString();
         this.ownerUserId = ownerUserId;
         this.name = partyName;
-        createdAt = Instant.now();
+        this.createdAt = Instant.now();
     }
 }

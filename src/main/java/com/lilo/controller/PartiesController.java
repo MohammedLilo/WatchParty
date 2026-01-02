@@ -11,19 +11,24 @@ import com.lilo.model.dto.*;
 import com.lilo.operationResult.TableOperationResult;
 import com.lilo.service.PartiesService;
 import com.lilo.shared.WebSocketConstants;
+import com.lilo.shared.annotations.AllowedValues;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
 
 import com.lilo.service.UserService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import static org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder.on;
 
@@ -55,6 +60,16 @@ public class PartiesController extends BaseController {
      * (IOException e) { log.error("an IOException occured.. " + e.getMessage()); }
      * return emitter; }
      */
+    @GetMapping
+    public ResponseEntity<?> listParties(@RequestParam(name = "page", defaultValue = "0") int pageNumber,
+                                        @RequestParam(name = "size", defaultValue = "10") int size,
+                                        @RequestParam(name = "sortBy", defaultValue = "createdAt") @AllowedValues(values = {"createdAt"}) String sortBy) {
+
+        String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
+        Page<PartySummaryDTO> storedParties = partiesService.getParties(pageNumber, size, Sort.by(Sort.Order.desc(sortBy)))
+                .map(p-> PartySummaryDTO.fromParty(p, baseUrl));
+        return ResponseEntity.ok(storedParties);
+    }
     @PatchMapping("/join")
     public ResponseEntity<?> joinParty(@Valid @RequestBody JoinPartyRequestDTO joinPartyRequestDTO, BindingResult bindingResult, @AuthenticationPrincipal User authenticatedUser) {
         if (bindingResult.hasErrors())
@@ -86,15 +101,14 @@ public class PartiesController extends BaseController {
 
 
     @PostMapping
-    public ResponseEntity<?> createWatchParty(@Valid @RequestBody PartyInputDTO partyInputDTO, BindingResult bindingResult, @AuthenticationPrincipal User authenticatedUser) {
-        if (bindingResult.hasErrors())
-            return buildBindingErrorResponse(bindingResult);
+    public ResponseEntity<?> createWatchParty(@RequestPart MultipartFile thumbnailMultipartFile,  @RequestPart String partyName, @AuthenticationPrincipal User authenticatedUser) throws Exception {
+
 
         if (authenticatedUser.getPartyId() != null)
             return buildErrorResponse(HttpStatus.CONFLICT, "User is already in a party");
 
-        Party newParty = new Party(authenticatedUser.getId(), partyInputDTO.getPartyName());
-        TableOperationResult partySavingResult = partiesService.save(newParty);
+        Party newParty = new Party(authenticatedUser.getId(), partyName);
+        TableOperationResult partySavingResult = partiesService.save(newParty, thumbnailMultipartFile);
         if (!partySavingResult.isSuccess())
             return buildErrorResponse(new ApiError(partySavingResult.getSuggestedStatusCode(), partySavingResult.getErrorMessage()));
 
@@ -105,7 +119,9 @@ public class PartiesController extends BaseController {
                 .fromMethodCall(on(PartiesController.class).getPartyDetails(newParty.getId(), null))
                 .build()
                 .toUri();
-        return ResponseEntity.created(location).body(ApiResponse.withSuccess(newParty));
+        String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
+
+        return ResponseEntity.created(location).body(ApiResponse.withSuccess(PartySummaryDTO.fromParty(newParty, baseUrl)));
     }
 
     @DeleteMapping("/leave")

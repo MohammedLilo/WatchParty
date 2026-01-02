@@ -13,20 +13,20 @@ import org.springframework.web.multipart.MultipartFile;
 import jakarta.annotation.PostConstruct;
 
 @Service
-public class VideoStorageService {
-	private final Path ROOT = Paths.get("./uploads");
+public class FileStorageService {
+	public static final Path ROOT = Paths.get("./uploads");
 
 	@PostConstruct
 	void init() throws IOException {
 		Files.createDirectories(ROOT);
 	}
 
-	public void save(String videoFileName, MultipartFile multipartFile) throws IOException {
-		Files.copy(multipartFile.getInputStream(), ROOT.resolve(videoFileName));
+	public void save(String fileName, MultipartFile multipartFile) throws IOException {
+		Files.copy(multipartFile.getInputStream(), ROOT.resolve(fileName));
 	}
 
-	public Resource load(String videoFileName) {
-		return new FileSystemResource(ROOT.resolve(videoFileName));
+	public Resource load(String fileName) {
+		return new FileSystemResource(ROOT.resolve(fileName));
 	}
 
 	public void delete(String videoFileName) throws IOException {

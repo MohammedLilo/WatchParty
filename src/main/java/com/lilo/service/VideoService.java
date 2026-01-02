@@ -26,7 +26,7 @@ import lombok.RequiredArgsConstructor;
 @Slf4j
 public class VideoService {
     private final VideoRepository videoRepository;
-    private final VideoStorageService videoStorageService;
+    private final FileStorageService fileStorageService;
     private final UserService userService;
 
     public List<Video> findByUserId(long userId) {
@@ -40,7 +40,7 @@ public class VideoService {
 
     public Video save(MultipartFile multipartFile, long userId, String videoName) throws IOException {
         String fileName = UUID.randomUUID().toString() + ".mp4";
-        videoStorageService.save(fileName, multipartFile);
+        fileStorageService.save(fileName, multipartFile);
         return videoRepository.save(new Video(fileName, videoName, userId, LocalDateTime.now()));
     }
 
@@ -63,7 +63,7 @@ public class VideoService {
 
     private void tryDeleteVideoFromStorage(String videoFileName) {
         try {
-            videoStorageService.delete(videoFileName);
+            fileStorageService.delete(videoFileName);
         } catch (IOException e) {
             System.err.println("CRITICAL: Failed to delete video file on storage. File remains: " + videoFileName);
         }

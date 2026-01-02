@@ -10,6 +10,7 @@ public class SecurityConstants {
                                         , "/js/**", "/css/**", "/swagger-ui/**"
                                         ,"/v3/api-docs/**"
                                         ,"/ws/**"
+                                        ,"/thumbnails/**"
                                         };
 
 }
