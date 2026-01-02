@@ -41,12 +41,8 @@ public class VideoController extends BaseController {
 	private final UserService userService;
     private final AuthService authService;
 
-//	@GetMapping("/videos-library")
-//	public String getVideosLibraryPage() {
-//		return "videos-page.html";
-//	}
-    @Operation(summary = "Stream Video File by Name",
-            description = "**⚠️ IMPORTANT:** This endpoint streams binary video data. Successful execution (200 OK) in Swagger UI will result in an 'Unable to Display' error. Use a browser or external tool to confirm video playback. The 404 error path can be tested safely here.")
+    @Operation(deprecated = true,summary = "Stream Video File by Name",
+            description = "**⚠️ IMPORTANT:** Use the static serving endpoint instead <br><br> **Note:** This endpoint streams binary video data. Successful execution (200 OK) in Swagger UI will result in an 'Unable to Display' error. Use a browser or external tool to confirm video playback. The 404 error path can be tested safely here.")
     @ApiResponses(value = {
             // SUCCESS (200 OK) - Documents the video stream
             @io.swagger.v3.oas.annotations.responses.ApiResponse(

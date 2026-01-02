@@ -14,6 +14,10 @@ public class WebConfig implements WebMvcConfigurer {
         // This maps 'http://localhost:8081/thumbnails/image.jpg'
         registry.addResourceHandler(WebConstants.thumbnailsUrlPattern)
                 .addResourceLocations(FileStorageService.ROOT.toUri().toString())
-                .setCachePeriod(180); // Cache images for 1 hour
+                .setCachePeriod(180); // Cache images for 3 mins
+
+        registry.addResourceHandler(WebConstants.videosUrlPattern)
+                .addResourceLocations(FileStorageService.ROOT.toUri().toString())
+                .setCachePeriod(3600);
     }
 }
