@@ -15,21 +15,21 @@ public class VideoOutputDTO {
     private LocalDateTime timestamp;
 	private String ownerFullName;
 
-    private VideoOutputDTO(Video video) {
-        videoUrl = video.getVideoFileName();
-        videoName = video.getVideoName();
-        userId = video.getUser().getId();
-        timestamp = video.getTimestamp();
-        ownerFullName = video.getUser().getName();
+    private VideoOutputDTO(Video video,  String videoUrl) {
+        this.videoUrl = videoUrl;
+        this.videoName = video.getVideoName();
+        this.userId = video.getUser().getId();
+        this.timestamp = video.getTimestamp();
+        this.ownerFullName = video.getUser().getName();
     }
     public static  VideoOutputDTO fromVideo(Video video, String baseUrl) {
         String path = WebConstants.videosUrlPattern.replace("**", "");
-        String thumbnailUrl = String.format("%s%s%s",
+        String videoUrl = String.format("%s%s%s",
                 baseUrl,
                 path,
                 video.getVideoFileName()
         );
 
-        return new VideoOutputDTO(video);
+        return new VideoOutputDTO(video, videoUrl);
     }
 }
