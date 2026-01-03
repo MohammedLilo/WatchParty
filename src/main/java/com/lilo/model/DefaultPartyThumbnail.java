@@ -6,11 +6,11 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "default_thumbnails")
+@Table(name = "default_party_thumbnails")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class DefaultThumbnail {
+public class DefaultPartyThumbnail {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column

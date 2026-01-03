@@ -1,6 +1,5 @@
 package com.lilo.repository;
 
-import com.lilo.model.DefaultThumbnail;
 import com.lilo.model.DefaultUserProfilePicture;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

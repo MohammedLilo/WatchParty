@@ -7,6 +7,7 @@ import com.lilo.model.Role;
 import com.lilo.model.User;
 import com.lilo.operationResult.TableOperationResult;
 import com.lilo.repository.RolesRepository;
+import com.lilo.service.DefaultUserProfilePictureService;
 import com.lilo.service.UserService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;

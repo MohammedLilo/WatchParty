@@ -1,6 +1,7 @@
 package com.lilo.controller;
 
 
+import com.lilo.model.dto.ApiResponse;
 import com.lilo.model.dto.UserInputDTO;
 import com.lilo.operationResult.TableOperationResult;
 import com.lilo.shared.WebConstants;
@@ -57,7 +58,7 @@ public class UserController extends BaseController {
                 .build()
                 .toUri();
         return ResponseEntity.created(location)
-                .body(buildSuccessResponse("Profile Picture updated successfully!"));
+                .body(ApiResponse.withSuccess("Profile Picture updated successfully!"));
     }
 
     @DeleteMapping

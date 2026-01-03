@@ -1,4 +1,4 @@
-package com.lilo.security;
+package com.lilo.service;
 
 import com.lilo.model.DefaultUserProfilePicture;
 import com.lilo.repository.DefaultUserProfilePictureRepository;

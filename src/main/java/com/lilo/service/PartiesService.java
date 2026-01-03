@@ -1,6 +1,6 @@
 package com.lilo.service;
 
-import com.lilo.model.DefaultThumbnail;
+import com.lilo.model.DefaultPartyThumbnail;
 import com.lilo.model.Party;
 import com.lilo.model.User;
 import com.lilo.model.dto.PartyDetailsDTO;
@@ -21,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -33,7 +32,7 @@ public class PartiesService {
     private final PartiesRepository partiesRepository;
     private final UserService userService;
     private final FileStorageService fileStorageService;
-    private final DefaultThumbnailService defaultThumbnailService;
+    private final DefaultPartyThumbnailService defaultPartyThumbnailService;
 //    private final UserRepository userRepository;
 
     public TableOperationResult save(Party party, MultipartFile multipartFile) throws Exception {
@@ -46,10 +45,10 @@ public class PartiesService {
             party.setThumbnailFileName(fileName);
             fileStorageService.save(fileName, multipartFile);
         } else {
-            DefaultThumbnail defaultThumbnail = defaultThumbnailService.findRandomly().orElseThrow(() ->
+            DefaultPartyThumbnail defaultPartyThumbnail = defaultPartyThumbnailService.findRandomly().orElseThrow(() ->
                     new RuntimeException("CRITICAL ERROR: Default party thumbnail was not found")
             );
-            party.setThumbnailFileName(defaultThumbnail.getThumbnailFileName());
+            party.setThumbnailFileName(defaultPartyThumbnail.getThumbnailFileName());
         }
         partiesRepository.save(party);
         return TableOperationResult.fromSuccess();
