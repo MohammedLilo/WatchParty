@@ -41,13 +41,14 @@ public class PartiesService {
             return TableOperationResult.fromFailure("User already owns a party", HttpStatus.CONFLICT.value());
 
 
-        if(!multipartFile.isEmpty()) {
+        if (!multipartFile.isEmpty()) {
             String fileName = UUID.randomUUID().toString();
             party.setThumbnailFileName(fileName);
             fileStorageService.save(fileName, multipartFile);
-        }
-        else {
-            DefaultThumbnail defaultThumbnail = defaultThumbnailService.findRandomly().orElseThrow(() -> new Exception("INTERNAL SERVER ERROR: default thumbnail was not found in DB"));
+        } else {
+            DefaultThumbnail defaultThumbnail = defaultThumbnailService.findRandomly().orElseThrow(() ->
+                    new RuntimeException("CRITICAL ERROR: Default party thumbnail was not found")
+            );
             party.setThumbnailFileName(defaultThumbnail.getThumbnailFileName());
         }
         partiesRepository.save(party);
@@ -141,6 +142,7 @@ public class PartiesService {
         return partiesRepository.findById(partyId)
                 .orElseThrow(() -> new EntityNotFoundException("Party not found with id: " + partyId));
     }
+
     @Transactional(readOnly = true)
     public Page<Party> getParties(int pageNumber, int pageSize, Sort sort) {
         Pageable pageable = PageRequest.of(pageNumber, pageSize, sort);

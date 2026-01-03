@@ -63,7 +63,7 @@ public class User implements UserDetails {
         phoneNumber = userSignUpDTO.getPhoneNumber();
     }
 
-    public static User FromUserInputDTO(userSignUpDTO userSignUpDTO) {
+    public static User fromUserInputDTO(userSignUpDTO userSignUpDTO) {
         return new User(userSignUpDTO);
     }
 

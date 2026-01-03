@@ -31,7 +31,7 @@ public class AuthController extends BaseController {
         if (bindingResult.hasErrors())
             return buildBindingErrorResponse(bindingResult);
 
-        User newUser = User.FromUserInputDTO(userSignUpDTO);
+        User newUser = User.fromUserInputDTO(userSignUpDTO);
         TableOperationResult userSavingResult = authService.save(newUser);
         if (userSavingResult.isSuccess()) {
             URI location = MvcUriComponentsBuilder

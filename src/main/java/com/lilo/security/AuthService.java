@@ -2,27 +2,22 @@ package com.lilo.security;
 
 import com.lilo.enums.ERoles;
 import com.lilo.exception.JwtAuthenticationException;
-import com.lilo.exception.UnauthorizedAccessException;
+import com.lilo.model.DefaultUserProfilePicture;
 import com.lilo.model.Role;
 import com.lilo.model.User;
 import com.lilo.operationResult.TableOperationResult;
 import com.lilo.repository.RolesRepository;
 import com.lilo.service.UserService;
-import io.netty.handler.logging.LogLevel;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.messaging.MessageHandlingException;
-import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.security.Principal;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -39,6 +34,7 @@ public class AuthService {
     private final RolesRepository rolesRepository;
     private final JwtService jwtService;
     private Map<ERoles, Role> cachedRoles;
+    private final DefaultUserProfilePictureService defaultUserProfilePictureService;
 
     @PostConstruct
     public void init() {
@@ -49,6 +45,10 @@ public class AuthService {
     public TableOperationResult save(User user) {
         user.setEmail(user.getEmail().toLowerCase());
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+        DefaultUserProfilePicture defaultUserProfilePicture = defaultUserProfilePictureService.findRandomly().orElseThrow(()-> {
+            return new RuntimeException("CRITICAL ERROR: Default profile picture was not found");
+        });
+        user.setProfilePicture(defaultUserProfilePicture.getPictureFileName());
 
         Role defaultRole = cachedRoles.get(ERoles.USER);
 
