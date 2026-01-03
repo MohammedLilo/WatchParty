@@ -1,6 +1,6 @@
 package com.lilo.service;
 
-import com.lilo.model.ChatMessage;
+import com.lilo.model.PartyMessage;
 import com.lilo.operationResult.TableOperationResult;
 import com.lilo.repository.ChatMessageRepository;
 import lombok.RequiredArgsConstructor;
@@ -12,14 +12,14 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class ChatMessageService {
+public class PartyMessageService {
     private final ChatMessageRepository chatMessageRepository;
 
-    public TableOperationResult save(ChatMessage chatMessage){
-        chatMessageRepository.save(chatMessage);
+    public TableOperationResult save(PartyMessage partyMessage){
+        chatMessageRepository.save(partyMessage);
         return TableOperationResult.fromSuccess();
     }
-    public Page<ChatMessage> findByPartyId(String partyId, int pageNumber, int pageSize, Sort sort) {
+    public Page<PartyMessage> findByPartyId(String partyId, int pageNumber, int pageSize, Sort sort) {
         Pageable pageable = PageRequest.of(pageNumber, pageSize, sort);
         return chatMessageRepository.findAll(pageable);
     }

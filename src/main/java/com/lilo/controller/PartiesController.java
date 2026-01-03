@@ -10,6 +10,7 @@ import com.lilo.model.*;
 import com.lilo.model.dto.*;
 import com.lilo.operationResult.TableOperationResult;
 import com.lilo.service.PartiesService;
+import com.lilo.service.PartyMessageService;
 import com.lilo.shared.WebSocketConstants;
 import com.lilo.shared.annotations.AllowedValues;
 import jakarta.validation.Valid;
@@ -41,6 +42,7 @@ public class PartiesController extends BaseController {
     private final UserService userService;
     private final SimpMessagingTemplate simpMessagingTemplate;
     private final Map<String, PartyDetailTuple> partyDetailTupleMap = new HashMap<>();
+    private final PartyMessageService partyMessageService;
 
 //	@PreDestroy
 //	void deleteAllPartiesFromDatabase() {
@@ -98,7 +100,19 @@ public class PartiesController extends BaseController {
         return buildSuccessResponse(partyDetails);
     }
 
+    @GetMapping("/{partyId}/messages")
+    public ResponseEntity<?> getPartyMessages(@PathVariable("partyId") String partyId,
+                                              @RequestParam(name = "page", defaultValue = "0") int pageNumber,
+                                              @RequestParam(name = "size", defaultValue = "6") int size,
+                                              @AuthenticationPrincipal User authenticatedUser) {
 
+        if (authenticatedUser.getPartyId() == null || !authenticatedUser.getPartyId().equals(partyId))
+            return buildErrorResponse(HttpStatus.FORBIDDEN, "User is not a member of this party");
+
+        Page<PartyMessageOutputDTO> partyMessages = partyMessageService.findByPartyId(partyId, pageNumber, size, Sort.by(Sort.Order.desc("createdAt")))
+                                                                        .map(PartyMessageOutputDTO::fromPartyMessage);
+        return buildSuccessResponse(partyMessages);
+    }
 
     @PostMapping
     public ResponseEntity<?> createWatchParty(@RequestPart MultipartFile thumbnailMultipartFile,  @RequestPart String partyName, @AuthenticationPrincipal User authenticatedUser) throws Exception {
