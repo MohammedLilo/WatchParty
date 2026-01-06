@@ -11,6 +11,7 @@ import com.lilo.model.dto.*;
 import com.lilo.operationResult.TableOperationResult;
 import com.lilo.service.PartiesService;
 import com.lilo.service.PartyMessageService;
+import com.lilo.shared.WebConstants;
 import com.lilo.shared.WebSocketConstants;
 import com.lilo.shared.annotations.AllowedValues;
 import jakarta.validation.Valid;
@@ -109,8 +110,11 @@ public class PartiesController extends BaseController {
         if (authenticatedUser.getPartyId() == null || !authenticatedUser.getPartyId().equals(partyId))
             return buildErrorResponse(HttpStatus.FORBIDDEN, "User is not a member of this party");
 
+        String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
+        String profilePicturesUrl = String.format("%s%s", baseUrl, WebConstants.profilePictureUrlPattern.replace("**", ""));
+
         Page<PartyMessageOutputDTO> partyMessages = partyMessageService.findByPartyId(partyId, pageNumber, size, Sort.by(Sort.Order.desc("createdAt")))
-                                                                        .map(PartyMessageOutputDTO::fromPartyMessage);
+                .map(pm -> PartyMessageOutputDTO.fromPartyMessage(pm, String.format("%s%s", profilePicturesUrl, pm.getUser().getProfilePicture())));
         return buildSuccessResponse(partyMessages);
     }
 
