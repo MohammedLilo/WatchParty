@@ -36,7 +36,7 @@ public class Party {
     private String currentVideoUrl;
 
     @Column(name = "latest_sync_event_payload", columnDefinition = "TEXT")
-    private String latestSyncEventJson;
+    private String latestSyncEventJsonPayload;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)

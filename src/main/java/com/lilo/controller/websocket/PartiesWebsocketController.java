@@ -31,24 +31,48 @@ public class PartiesWebsocketController {
     PartySyncEventOutputDTO handleSync(@Payload PartySyncEventInputDTO partySyncEventInputDTO, @DestinationVariable("id") String id, Authentication authentication) throws JsonProcessingException {
 
         User authenticatedUser = (User) authentication.getPrincipal();
-        PartySyncEventOutputDTO partySyncEventOutputDTO = new PartySyncEventOutputDTO(authenticatedUser.getId(),
-                                                                                        authenticatedUser.getName(),
-                                                                                        partySyncEventInputDTO.getEvent(),
-                                                                                        partySyncEventInputDTO.getVideoUrl(),
-                                                                                        partySyncEventInputDTO.getVideoCurrentTime(),
-                                                                                        partySyncEventInputDTO.getEventDateTime());
-
         Party storedParty = partiesService.findPartyById(id);
 
-        String partySyncEventJSON = objectMapper.writeValueAsString(partySyncEventOutputDTO);
-        storedParty.setLatestSyncEventJson(partySyncEventJSON);
+        PartySyncEventOutputDTO newPartySyncEventOutputDTO;
+        PartySyncEventOutputDTO previousPartySyncEventOutputDTO = (storedParty.getLatestSyncEventJsonPayload() != null) ? objectMapper.readValue(storedParty.getLatestSyncEventJsonPayload(), PartySyncEventOutputDTO.class) : null;
+        PartySyncEventOutputDTO earliestPartySyncEventOutputDTO = (previousPartySyncEventOutputDTO != null && previousPartySyncEventOutputDTO.getPreviousSyncEventJsonPayload() != null) ? previousPartySyncEventOutputDTO.getPreviousSyncEventJsonPayload() : null;
+
+        if (previousPartySyncEventOutputDTO != null && partySyncEventInputDTO.getEvent().equals(previousPartySyncEventOutputDTO.getEvent())) {
+            newPartySyncEventOutputDTO = new PartySyncEventOutputDTO(authenticatedUser.getId(),
+                    authenticatedUser.getName(),
+                    partySyncEventInputDTO.getEvent(),
+                    partySyncEventInputDTO.getVideoUrl(),
+                    partySyncEventInputDTO.getVideoCurrentTime(),
+                    partySyncEventInputDTO.getEventDateTime(),
+                    earliestPartySyncEventOutputDTO);
+        } else {
+            newPartySyncEventOutputDTO = new PartySyncEventOutputDTO(authenticatedUser.getId(),
+                    authenticatedUser.getName(),
+                    partySyncEventInputDTO.getEvent(),
+                    partySyncEventInputDTO.getVideoUrl(),
+                    partySyncEventInputDTO.getVideoCurrentTime(),
+                    partySyncEventInputDTO.getEventDateTime(),
+                    previousPartySyncEventOutputDTO);
+        }
+
+        if (newPartySyncEventOutputDTO.getPreviousSyncEventJsonPayload() != null && newPartySyncEventOutputDTO.getPreviousSyncEventJsonPayload().getPreviousSyncEventJsonPayload() != null)
+            newPartySyncEventOutputDTO.getPreviousSyncEventJsonPayload().setPreviousSyncEventJsonPayload(null);
+
+
+
+        String newPartySyncEventJSON = objectMapper.writeValueAsString(newPartySyncEventOutputDTO);
+        String newPreviousPartySyncEventJSON = (newPartySyncEventOutputDTO.getPreviousSyncEventJsonPayload() != null)
+                                                                                                        ? objectMapper.writeValueAsString(newPartySyncEventOutputDTO.getPreviousSyncEventJsonPayload())
+                                                                                                        : null;
+        storedParty.setLatestSyncEventJsonPayload(newPartySyncEventJSON);
+
         if (partySyncEventInputDTO.getEvent() == PartyVideoEvent.CHANGE_URL)
             storedParty.setCurrentVideoUrl(partySyncEventInputDTO.getVideoUrl());
 
         partiesService.update(storedParty);
-        return partySyncEventOutputDTO;
-    }
 
+        return newPartySyncEventOutputDTO;
+    }
 
 
 }

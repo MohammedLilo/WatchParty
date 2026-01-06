@@ -40,7 +40,7 @@ public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
                         return (Authentication) attributes.get("user");
                     }
                 })
-                .setAllowedOrigins("http://127.0.0.1:5500", "http://localhost:5500", "null")
+                .setAllowedOrigins("http://127.0.0.1:5500", "http://localhost:5500", "http://localhost:5173", "http://127.0.0.1:5173", "null")
                 .withSockJS();
     }
 

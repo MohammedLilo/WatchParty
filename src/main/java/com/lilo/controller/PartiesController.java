@@ -83,7 +83,7 @@ public class PartiesController extends BaseController {
         TableOperationResult userJoiningResult = partiesService.joinParty(joinPartyRequestDTO.getPartyId(), authenticatedUser);
         if (userJoiningResult.isSuccess()) {
             PartyDetailsDTO partyDetails = partiesService.getPartyDetails(joinPartyRequestDTO.getPartyId());
-            simpMessagingTemplate.convertAndSend(WebSocketConstants.TOPIC_PARTY_MEMBER_EVENTS, new PartyMemberEventOutputDTO(authenticatedUser.getId(), PartyMemberEvent.JOINED, Instant.now()));
+            simpMessagingTemplate.convertAndSend(WebSocketConstants.TOPIC_PARTY_MEMBER_EVENTS, new PartyMemberEventOutputDTO(authenticatedUser.getId(), authenticatedUser.getName(), PartyMemberEvent.JOINED, Instant.now()));
             return buildSuccessResponse(partyDetails);
         }
         return buildErrorResponse(userJoiningResult);
@@ -115,7 +115,7 @@ public class PartiesController extends BaseController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createWatchParty(@RequestPart MultipartFile thumbnailMultipartFile,  @RequestPart String partyName, @AuthenticationPrincipal User authenticatedUser) throws Exception {
+    public ResponseEntity<?> createWatchParty(@RequestPart(required = false) MultipartFile thumbnailMultipartFile,  @RequestPart String partyName, @AuthenticationPrincipal User authenticatedUser) throws Exception {
 
 
         if (authenticatedUser.getPartyId() != null)
@@ -146,7 +146,7 @@ public class PartiesController extends BaseController {
             return ResponseEntity.noContent().build();
 
         partiesService.processUserLeave(authenticatedUser);
-        simpMessagingTemplate.convertAndSend(WebSocketConstants.TOPIC_PARTY_MEMBER_EVENTS, new PartyMemberEventOutputDTO(authenticatedUser.getId(), PartyMemberEvent.LEFT, Instant.now()));
+        simpMessagingTemplate.convertAndSend(WebSocketConstants.TOPIC_PARTY_MEMBER_EVENTS, new PartyMemberEventOutputDTO(authenticatedUser.getId(), authenticatedUser.getName(), PartyMemberEvent.LEFT, Instant.now()));
         return ResponseEntity.noContent().build();
     }
 

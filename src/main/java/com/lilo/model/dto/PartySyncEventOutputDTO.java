@@ -16,6 +16,7 @@ public class PartySyncEventOutputDTO {
     private String videoUrl;
     private Double videoCurrentTime;
     private Long eventDateTime;
+    private PartySyncEventOutputDTO previousSyncEventJsonPayload;
 
 }
 

@@ -12,6 +12,7 @@ import java.time.Instant;
 public class PartyMemberEventOutputDTO {
 
     private long userId;
+    private String userFullName;
     private PartyMemberEvent event;
     private Instant timestamp;
 }

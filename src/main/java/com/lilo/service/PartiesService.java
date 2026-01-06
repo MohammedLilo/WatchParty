@@ -40,7 +40,7 @@ public class PartiesService {
             return TableOperationResult.fromFailure("User already owns a party", HttpStatus.CONFLICT.value());
 
 
-        if (!multipartFile.isEmpty()) {
+        if (multipartFile != null && !multipartFile.isEmpty()) {
             String fileName = UUID.randomUUID().toString();
             party.setThumbnailFileName(fileName);
             fileStorageService.save(fileName, multipartFile);
@@ -130,7 +130,7 @@ public class PartiesService {
                 ownerUser.getId(),
                 ownerUser.getName(),
                 storedParty.getCurrentVideoUrl(),
-                storedParty.getLatestSyncEventJson(),
+                storedParty.getLatestSyncEventJsonPayload(),
                 storedParty.isPrivate(),
                 thumbnailUrl,
                 memberDTOs);

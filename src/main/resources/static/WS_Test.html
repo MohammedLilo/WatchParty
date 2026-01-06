@@ -184,22 +184,20 @@
         </div>
     </div>
 </div>
-
-
 <script>
     // Global state
     let authToken = null;
     let currentUser = null;
     let currentParty = null;
     let stompClient = null;
+    let suppressVideoEvents = false;
 
-    // Config
+    // Config - Matches your Backend Constants
     const API_BASE = 'http://localhost:8081/api/v1';
     const WS_ENDPOINT = 'http://localhost:8081/ws';
-    const TOPIC_CHAT_PREFIX = '/topic/chat.';
-
-    let eventOwnerId;
-    let isJoining = false;
+    const TOPIC_CHAT_PREFIX = '/topic/chat.'; // TOPIC_PARTY_CHAT
+    const TOPIC_VIDEO_PREFIX = '/topic/party.';
+    const TOPIC_MEMBER_EVENTS = '/topic/member-events';
 
     // DOM elements
     const loginScreen = document.getElementById('login-screen');
@@ -209,21 +207,26 @@
     const partyError = document.getElementById('party-error');
     const createModal = document.getElementById('create-modal');
     const videoPlayer = document.getElementById('video-player');
-
-    // Chat DOM elements
+    const membersList = document.getElementById('members-list');
     const chatMessages = document.getElementById('chat-messages');
     const chatForm = document.getElementById('chat-form');
     const chatInput = document.getElementById('chat-input');
 
-    // Login functionality
+    // --- Helper Functions ---
+    function buildAuthHeader() {
+        return { 'Authorization': `Bearer ${authToken}` };
+    }
+
+    function showError(element, message) {
+        element.textContent = message;
+        element.classList.remove('hidden');
+        setTimeout(() => element.classList.add('hidden'), 5000);
+    }
+
+    // --- Login Logic ---
     document.getElementById('login-btn').addEventListener('click', async () => {
         const email = document.getElementById('email-input').value;
         const password = document.getElementById('password-input').value;
-
-        if (!email || !password) {
-            showError(loginError, 'Please enter both email and password');
-            return;
-        }
 
         try {
             const response = await fetch(`${API_BASE}/auth/login`, {
@@ -232,368 +235,218 @@
                 body: JSON.stringify({ email, password })
             });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Login failed');
-            }
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.message || 'Login failed');
 
-            const data = await response.json();
-            authToken = data.data.token;
-            currentUser = data.data;
-
-            eventOwnerId = currentUser.id;
+            // Based on your ApiResponse structure (data.data.token)
+            authToken = result.data.token;
+            currentUser = result.data;
 
             loginScreen.classList.add('hidden');
-            partyScreen.classList.remove('hidden');
+
+            // Check if user is already in a party (based on your Controller logic)
+            if (currentUser.partyId) {
+                await getAndUpdatePartyDetails(currentUser.partyId);
+                await initializeVideoScreen();
+            } else {
+                partyScreen.classList.remove('hidden');
+            }
         } catch (error) {
-            showError(loginError, error.message || 'Login failed. Please check your credentials.');
+            showError(loginError, error.message);
         }
     });
 
-    // Create party
-    document.getElementById('create-party-btn').addEventListener('click', () => {
-        createModal.classList.remove('hidden');
-    });
+    // --- Party Actions ---
+    document.getElementById('create-party-btn').addEventListener('click', () => createModal.classList.remove('hidden'));
+    document.getElementById('create-cancel-btn').addEventListener('click', () => createModal.classList.add('hidden'));
 
-    document.getElementById('create-cancel-btn').addEventListener('click', () => {
-        createModal.classList.add('hidden');
-        document.getElementById('party-name-input').value = '';
-        document.getElementById('party-thumbnail-input').value = '';
-    });
-
-    // UPDATED: Create Party with Multipart Form Data
     document.getElementById('create-confirm-btn').addEventListener('click', async () => {
         const partyName = document.getElementById('party-name-input').value;
         const thumbnailFile = document.getElementById('party-thumbnail-input').files[0];
 
-        if (!partyName) {
-            alert('Please enter a party name');
-            return;
-        }
-
-        // Create FormData to handle multipart/form-data
         const formData = new FormData();
         formData.append('partyName', partyName);
-        if (thumbnailFile) {
-            formData.append('thumbnailMultipartFile', thumbnailFile);
-        }
+        if (thumbnailFile) formData.append('thumbnailMultipartFile', thumbnailFile);
 
         try {
             const response = await fetch(`${API_BASE}/parties`, {
                 method: 'POST',
-                headers: {
-                    // Do NOT set Content-Type here, browser handles it for FormData
-                    'Authorization': `Bearer ${authToken}`
-                },
+                headers: { 'Authorization': `Bearer ${authToken}` },
                 body: formData
             });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.message);
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Failed to create party');
-            }
-
-            const data = await response.json();
-            await getAndUpdatePartyDetails(data.data.id);
+            await getAndUpdatePartyDetails(result.data.id);
             createModal.classList.add('hidden');
-
-            // Clean up inputs
-            document.getElementById('party-name-input').value = '';
-            document.getElementById('party-thumbnail-input').value = '';
-
             await initializeVideoScreen();
         } catch (error) {
-            showError(partyError, error.message || 'Failed to create party');
+            showError(partyError, error.message);
         }
     });
 
-    // Join party
     document.getElementById('join-party-btn').addEventListener('click', async () => {
         const partyId = document.getElementById('party-id-input').value;
-
-        if (!partyId) {
-            showError(partyError, 'Please enter a party ID');
-            return;
-        }
-
         try {
             const response = await fetch(`${API_BASE}/parties/join`, {
                 method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${authToken}`
-                },
+                headers: { ...buildAuthHeader(), 'Content-Type': 'application/json' },
                 body: JSON.stringify({ partyId })
             });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.message);
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Failed to join party');
-            }
-
-            const data = await response.json();
-            currentParty = data.data;
-
+            currentParty = result.data;
             await initializeVideoScreen();
         } catch (error) {
-            showError(partyError, error.message || 'Failed to join party. Check the party ID.');
+            showError(partyError, error.message);
         }
     });
 
     async function getAndUpdatePartyDetails(partyId) {
-        const response = await fetch(`${API_BASE}/parties/${partyId}`, {
-            headers: { 'Authorization': `Bearer ${authToken}` }
-        });
-
-        if (!response.ok) throw new Error('Failed to fetch party details');
-
-        const data = await response.json();
-        currentParty = data.data;
+        const response = await fetch(`${API_BASE}/parties/${partyId}`, { headers: buildAuthHeader() });
+        const result = await response.json();
+        currentParty = result.data;
     }
 
     async function initializeVideoScreen() {
         partyScreen.classList.add('hidden');
         videoScreen.classList.remove('hidden');
 
-        document.getElementById('party-name-display').textContent = currentParty.partyName || 'Watch Party';
+        document.getElementById('party-name-display').textContent = currentParty.partyName;
         document.getElementById('party-id-display').textContent = currentParty.id;
 
-        // Display thumbnail if exists
-        const thumbContainer = document.getElementById('party-thumbnail-display');
-        if (currentParty.thumbnailUrl) {
-            thumbContainer.querySelector('img').src = currentParty.thumbnailUrl;
-            thumbContainer.classList.remove('hidden');
-        } else {
-            thumbContainer.classList.add('hidden');
+        if (currentParty.currentVideoUrl) {
+            videoPlayer.src = currentParty.currentVideoUrl;
         }
 
-        chatMessages.innerHTML = '<div class="text-center text-white/30 text-sm mt-4">Welcome to the chat!</div>';
-
-        await connectWebSocket();
-
-        if (currentParty.latestSyncEventPayload) {
-            try {
-                const syncEvent = JSON.parse(currentParty.latestSyncEventPayload);
-                if (syncEvent.videoUrl) {
-                    handleFirstEvent(syncEvent);
-                }
-            } catch (e) {
-                console.error('Error parsing latestSyncEventPayload:', e);
-            }
-        }
-
-        updateMembersList();
+        chatMessages.innerHTML = '';
+        await loadChatHistory();
+        renderMembers(currentParty.members || []);
+        connectWebSocket();
     }
 
-    async function connectWebSocket() {
-        const socket = new SockJS(`${WS_ENDPOINT}?token=${authToken}&partyId=${currentParty.id}`);
+    // --- WebSocket Logic ---
+    function connectWebSocket() {
+        const socket = new SockJS(`${WS_ENDPOINT}?token=${authToken}`);
         stompClient = Stomp.over(socket);
-        stompClient.debug = () => {};
+        stompClient.debug = null; // Set to console.log for debugging frames
 
-        return new Promise((resolve, reject) => {
-            stompClient.connect(
-                { Authorization: `Bearer ${authToken}` },
-                (frame) => {
-                    stompClient.subscribe(`/topic/party.${currentParty.id}`, (message) => {
-                        const event = JSON.parse(message.body);
-                        if (event.event !== 'JOIN' && event.event !== 'LEFT') {
-                            eventOwnerId = event.userId;
-                        }
-                        handleVideoEvent(event);
-                    });
+        stompClient.connect(buildAuthHeader(), (frame) => {
+            // 1. Video Sync Sub
+            stompClient.subscribe(`${TOPIC_VIDEO_PREFIX}${currentParty.id}`, (msg) => {
+                handleRemoteSyncEvent(JSON.parse(msg.body));
+            });
 
-                    stompClient.subscribe('/topic/member-events', (message) => {
-                        if (currentParty) updateMembersList();
-                    });
+            // 2. Chat Sub
+            stompClient.subscribe(`${TOPIC_CHAT_PREFIX}${currentParty.id}`, (msg) => {
+                appendChatMessage(JSON.parse(msg.body));
+            });
 
-                    stompClient.subscribe(`${TOPIC_CHAT_PREFIX}${currentParty.id}`, (message) => {
-                        const chatMsg = JSON.parse(message.body);
-                        displayChatMessage(chatMsg);
-                    });
+            // 3. Member Events Sub
+            stompClient.subscribe(TOPIC_MEMBER_EVENTS, (msg) => {
+                const event = JSON.parse(msg.body);
+                // Refresh list if someone else joined/left
+                if (event.userId !== currentUser.id) refreshMembersList();
+            });
 
-                    videoPlayer.addEventListener('play', sendVideoEvent);
-                    videoPlayer.addEventListener('pause', sendVideoEvent);
-                    videoPlayer.addEventListener('seeked', sendVideoEvent);
-
-                    resolve();
-                },
-                (error) => {
-                    reject(error);
-                }
-            );
-        });
+        }, (err) => setTimeout(connectWebSocket, 3000));
     }
 
-    chatForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const messageContent = chatInput.value.trim();
-        if (messageContent && stompClient) {
-            stompClient.send(`/app/watchParty-chats/${currentParty.id}`, {}, JSON.stringify({ content: messageContent }));
-            chatInput.value = '';
+    // --- Video Sync Handling ---
+    function sendSyncEvent(eventType, overrideUrl = null) {
+        if (suppressVideoEvents || !stompClient?.connected) return;
+
+        const payload = {
+            event: eventType,
+            videoUrl: overrideUrl || videoPlayer.src,
+            videoCurrentTime: videoPlayer.currentTime
+        };
+        stompClient.send(`/app/party/${currentParty.id}`, {}, JSON.stringify(payload));
+    }
+
+    videoPlayer.onplay = () => sendSyncEvent('PLAY');
+    videoPlayer.onpause = () => sendSyncEvent('PAUSE');
+    videoPlayer.onseeked = () => sendSyncEvent('SEEK');
+
+    document.getElementById('load-video-btn').onclick = () => {
+        const url = document.getElementById('video-url-input').value;
+        if (url) sendSyncEvent('CHANGE_URL', url);
+    };
+
+    function handleRemoteSyncEvent(data) {
+        if (data.userId === currentUser.id && data.event !== 'CHANGE_URL') return;
+
+        suppressVideoEvents = true;
+        if (data.event === 'CHANGE_URL') {
+            videoPlayer.src = data.videoUrl;
+        } else if (data.event === 'PLAY') {
+            videoPlayer.currentTime = data.videoCurrentTime;
+            videoPlayer.play();
+        } else if (data.event === 'PAUSE') {
+            videoPlayer.pause();
+        } else if (data.event === 'SEEK') {
+            videoPlayer.currentTime = data.videoCurrentTime;
         }
-    });
+        setTimeout(() => suppressVideoEvents = false, 500);
+    }
 
-    function displayChatMessage(msg) {
-        const isMe = msg.senderId === currentUser.id || msg.senderName === currentUser.name;
-        const alignClass = isMe ? 'self-end items-end' : 'self-start items-start';
-        const bgClass = isMe ? 'bg-purple-600 text-white' : 'bg-white/10 text-white';
-        const nameDisplay = isMe ? 'You' : msg.senderName;
+    // --- Chat Handling ---
+    async function loadChatHistory() {
+        try {
+            const res = await fetch(`${API_BASE}/parties/${currentParty.id}/messages?page=0&size=50`, { headers: buildAuthHeader() });
+            const result = await res.json();
+            // Data is paginated, reverse to show oldest first at top
+            result.data.content.reverse().forEach(msg => appendChatMessage(msg));
+        } catch (e) { console.error("Chat History Load Failed", e); }
+    }
 
-        const msgElement = document.createElement('div');
-        msgElement.className = `flex flex-col max-w-[85%] ${alignClass}`;
-        msgElement.innerHTML = `
-            <span class="text-[10px] text-white/50 mb-0.5 px-1">${nameDisplay}</span>
-            <div class="${bgClass} px-3 py-2 rounded-xl shadow-sm text-sm break-words">
-                ${escapeHtml(msg.content)}
+    chatForm.onsubmit = (e) => {
+        e.preventDefault();
+        const content = chatInput.value.trim();
+        if (!content || !stompClient?.connected) return;
+
+        // Matches PartyMessageInputDTO
+        stompClient.send(`/app/watchParty-chats/${currentParty.id}`, {}, JSON.stringify({ content }));
+        chatInput.value = '';
+    };
+
+    function appendChatMessage(msg) {
+        const isMe = (msg.userId === currentUser.id);
+        const div = document.createElement('div');
+        div.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'}`;
+        div.innerHTML = `
+            <div class="max-w-[85%] px-3 py-2 rounded-lg text-sm break-words ${isMe ? 'bg-purple-600 text-white rounded-tr-none' : 'bg-white/20 text-white rounded-tl-none'}">
+                ${msg.content}
             </div>
+            <div class="text-[10px] text-white/40 mt-1 px-1">${msg.senderName || 'User'}</div>
         `;
-
-        chatMessages.appendChild(msgElement);
+        chatMessages.appendChild(div);
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
-    function escapeHtml(text) {
-        if (!text) return "";
-        return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    // --- Member Management ---
+    function renderMembers(members) {
+        membersList.innerHTML = members.map(m => `
+            <div class="flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full text-sm border border-white/10">
+                <span class="w-5 h-5 bg-purple-500 rounded-full flex items-center justify-center text-xs font-bold">
+                    ${m.name.charAt(0).toUpperCase()}
+                </span> ${m.name}
+            </div>
+        `).join('') || '<span class="text-white/50 text-sm">Waiting for friends...</span>';
     }
 
-    document.getElementById('load-video-btn').addEventListener('click', () => {
-        const videoUrl = document.getElementById('video-url-input').value;
-        if (!videoUrl) {
-            alert('Please enter a video URL');
-            return;
-        }
-        sendVideoUrl(currentParty.id, videoUrl);
-        videoPlayer.src = videoUrl;
-        videoPlayer.load();
-    });
-
-    function handleFirstEvent(syncNewUserMessage) {
-        let videoCurrentTime = syncNewUserMessage.videoCurrentTime;
-        let eventDateTime = syncNewUserMessage.eventDateTime;
-        let videoUrl = syncNewUserMessage.videoUrl;
-        const myTime = new Date().valueOf();
-        const offset = (myTime - eventDateTime) / 1000;
-
-        isJoining = true;
-        videoPlayer.src = videoUrl;
-        videoPlayer.load();
-
-        switch (syncNewUserMessage.event) {
-            case 'PLAY':
-                videoPlayer.currentTime = videoCurrentTime + offset;
-                videoPlayer.play();
-                break;
-            case 'PAUSE':
-                videoPlayer.currentTime = videoCurrentTime;
-                videoPlayer.pause();
-                break;
-            case 'SEEK':
-                videoPlayer.currentTime = videoCurrentTime;
-                if (syncNewUserMessage.previousEvent === 'PLAY') {
-                    videoPlayer.currentTime = videoCurrentTime + offset;
-                    videoPlayer.play();
-                }
-                break;
-        }
-        setTimeout(() => { isJoining = false; }, 500);
+    async function refreshMembersList() {
+        const res = await fetch(`${API_BASE}/parties/${currentParty.id}`, { headers: buildAuthHeader() });
+        const result = await res.json();
+        renderMembers(result.data.members || []);
     }
 
-    function handleVideoEvent(syncMessage) {
-        if (syncMessage.userId === currentUser.id) return;
-        if (syncMessage.event === 'LEFT' || syncMessage.event === 'JOIN') return;
-
-        switch (syncMessage.event) {
-            case 'PLAY':
-                videoPlayer.currentTime = syncMessage.videoCurrentTime;
-                videoPlayer.play();
-                break;
-            case 'PAUSE':
-                videoPlayer.currentTime = syncMessage.videoCurrentTime;
-                videoPlayer.pause();
-                break;
-            case 'SEEK':
-                videoPlayer.currentTime = syncMessage.videoCurrentTime;
-                break;
-            case 'CHANGE_URL':
-                videoPlayer.src = syncMessage.videoUrl;
-                videoPlayer.load();
-                videoPlayer.play();
-                break;
-        }
-    }
-
-    function sendVideoEvent(event) {
-        if (eventOwnerId !== currentUser.id) {
-            eventOwnerId = currentUser.id;
-            return;
-        }
-        if (isJoining) return;
-
-        const syncMessage = {
-            event: event.type.toUpperCase() === 'SEEKED' ? 'SEEK' : event.type.toUpperCase(),
-            videoCurrentTime: videoPlayer.currentTime,
-            videoUrl: videoPlayer.src,
-            userId: currentUser.id,
-            eventDateTime: new Date().valueOf()
-        };
-        stompClient.send(`/app/party/${currentParty.id}`, {}, JSON.stringify(syncMessage));
-    }
-
-    function sendVideoUrl(partyId, videoUrl) {
-        const syncMessage = {
-            event: 'CHANGE_URL',
-            videoUrl: videoUrl,
-            videoCurrentTime: 0,
-            userId: currentUser.id,
-            eventDateTime: new Date().valueOf()
-        };
-        stompClient.send(`/app/party/${partyId}`, {}, JSON.stringify(syncMessage));
-    }
-
-    async function updateMembersList() {
-        try {
-            await getAndUpdatePartyDetails(currentParty.id);
-            const members = currentParty.members || [];
-            const membersList = document.getElementById('members-list');
-            membersList.innerHTML = members.map(member => `
-                <div class="bg-white/5 rounded-lg px-3 py-1 text-white flex items-center gap-2 border border-white/10">
-                    <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-                    <span class="font-medium text-sm">${member.name}</span>
-                    ${member.userId === currentParty.ownerUserId ? '<span class="text-yellow-400 text-xs" title="Host">👑</span>' : ''}
-                </div>
-            `).join('');
-        } catch (error) {
-            console.error('Failed to update members:', error);
-        }
-    }
-
-    document.getElementById('leave-party-btn').addEventListener('click', async () => {
-        try {
-            videoPlayer.removeEventListener('play', sendVideoEvent);
-            videoPlayer.removeEventListener('pause', sendVideoEvent);
-            videoPlayer.removeEventListener('seeked', sendVideoEvent);
-            await fetch(`${API_BASE}/parties/leave`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${authToken}` } });
-            if (stompClient) stompClient.disconnect();
-            videoScreen.classList.add('hidden');
-            partyScreen.classList.remove('hidden');
-            currentParty = null;
-            videoPlayer.src = '';
-        } catch (error) {
-            console.error('Failed to leave party:', error);
-        }
-    });
-
-    function showError(el, msg) {
-        el.textContent = msg;
-        el.classList.remove('hidden');
-        setTimeout(() => el.classList.add('hidden'), 5000);
-    }
-
-    // Key Handlers
-    document.getElementById('password-input').addEventListener('keypress', (e) => { if (e.key === 'Enter') document.getElementById('login-btn').click(); });
-    document.getElementById('party-id-input').addEventListener('keypress', (e) => { if (e.key === 'Enter') document.getElementById('join-party-btn').click(); });
-    document.getElementById('party-name-input').addEventListener('keypress', (e) => { if (e.key === 'Enter') document.getElementById('create-confirm-btn').click(); });
+    document.getElementById('leave-party-btn').onclick = async () => {
+        if (!confirm("Leave this party?")) return;
+        await fetch(`${API_BASE}/parties/leave`, { method: 'DELETE', headers: buildAuthHeader() });
+        location.reload();
+    };
 </script>
 </body>
 </html>

@@ -94,7 +94,7 @@ public class WebSocketEventListener {
                     log.info("User {} disconnected. Session ID: {}", authenticatedUser.getId(), sessionId);
 
                     partiesService.processUserLeave(authenticatedUser);
-                    simpMessagingTemplate.convertAndSend(WebSocketConstants.TOPIC_PARTY_MEMBER_EVENTS, new PartyMemberEventOutputDTO(authenticatedUser.getId(), PartyMemberEvent.LEFT, Instant.now()));
+                    simpMessagingTemplate.convertAndSend(WebSocketConstants.TOPIC_PARTY_MEMBER_EVENTS, new PartyMemberEventOutputDTO(authenticatedUser.getId(), authenticatedUser.getName(), PartyMemberEvent.LEFT, Instant.now()));
 
                     pendingLeaveTasks.remove(userId);
                 }, Instant.now().plus(gracePeriodSeconds, ChronoUnit.SECONDS));
