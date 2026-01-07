@@ -5,10 +5,12 @@ import com.lilo.model.dto.ApiResponse;
 import com.lilo.model.dto.UserInputDTO;
 import com.lilo.operationResult.TableOperationResult;
 import com.lilo.shared.WebConstants;
+import com.lilo.shared.annotations.ValidMultipartFile;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import com.lilo.model.User;
@@ -27,6 +29,7 @@ import java.net.URI;
 
 @RequestMapping("/api/v1/users")
 @RestController
+@Validated
 @RequiredArgsConstructor
 @Slf4j
 public class UserController extends BaseController {
@@ -49,7 +52,11 @@ public class UserController extends BaseController {
         return buildErrorResponse(userUpdateResult);
     }
     @PatchMapping("/profile-picture")
-    public ResponseEntity<?> setProfilePicture(@RequestPart MultipartFile profilePictureMultipartFile, @AuthenticationPrincipal User authenticatedUser) throws IOException {
+    public ResponseEntity<?> setProfilePicture(@RequestPart
+                                               @ValidMultipartFile(allowedTypes = "image/*", invalidFileTypeMessage = "Invalid file type. Allowed types are image/*")
+                                               MultipartFile profilePictureMultipartFile,
+                                               @AuthenticationPrincipal User authenticatedUser
+                                               ) throws IOException {
         userService.updateProfilePicture(authenticatedUser,  profilePictureMultipartFile);
         String path = WebConstants.profilePictureUrlPattern.replace("**", "");
         URI location = ServletUriComponentsBuilder.fromCurrentContextPath()

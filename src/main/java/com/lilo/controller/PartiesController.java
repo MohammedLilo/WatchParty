@@ -14,6 +14,7 @@ import com.lilo.service.PartyMessageService;
 import com.lilo.shared.WebConstants;
 import com.lilo.shared.WebSocketConstants;
 import com.lilo.shared.annotations.AllowedValues;
+import com.lilo.shared.annotations.ValidMultipartFile;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
@@ -22,6 +23,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
@@ -36,6 +38,7 @@ import static org.springframework.web.servlet.mvc.method.annotation.MvcUriCompon
 
 @RequestMapping("/api/v1/parties")
 @RestController
+@Validated
 @RequiredArgsConstructor
 @Slf4j
 public class PartiesController extends BaseController {
@@ -119,7 +122,10 @@ public class PartiesController extends BaseController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createWatchParty(@RequestPart(required = false) MultipartFile thumbnailMultipartFile,  @RequestPart String partyName, @AuthenticationPrincipal User authenticatedUser) throws Exception {
+    public ResponseEntity<?> createWatchParty(@RequestPart String partyName,
+                                              @RequestPart(required = false)
+                                              @ValidMultipartFile(allowedTypes = "image/*", invalidFileTypeMessage = "Invalid file type. Allowed types are image/*") MultipartFile thumbnailMultipartFile,
+                                              @AuthenticationPrincipal User authenticatedUser) throws Exception {
 
 
         if (authenticatedUser.getPartyId() != null)

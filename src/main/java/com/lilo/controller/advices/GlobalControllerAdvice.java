@@ -9,6 +9,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
@@ -66,7 +67,7 @@ public class GlobalControllerAdvice {
     }
 
     @ExceptionHandler(NoResourceFoundException.class)
-    public ResponseEntity<?> handleNoResourceFoundException(Exception ex) {
+    public ResponseEntity<?> handleNoResourceFoundException(NoResourceFoundException ex) {
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -82,13 +83,21 @@ public class GlobalControllerAdvice {
                 .body(ApiResponse.withError(HttpStatus.UNAUTHORIZED.value(), ex.getApiMessage()));
     }
 
-//    @ExceptionHandler(JwtAuthenticationException.class)
+    //    @ExceptionHandler(JwtAuthenticationException.class)
 //    public ResponseEntity<?> handleJwtAuthenticationException(JwtAuthenticationException ex) {
 //        return ResponseEntity
 //                .status(HttpStatus.UNAUTHORIZED)
 //                .contentType(MediaType.APPLICATION_JSON)
 //                .body(ApiResponse.withError(HttpStatus.UNAUTHORIZED.value(), ex.getApiMessage()));
 //    }
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<?> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex) {
+        return ResponseEntity
+                .status(HttpStatus.METHOD_NOT_ALLOWED)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(ApiResponse.withError(HttpStatus.METHOD_NOT_ALLOWED.value(),
+                        "Method '" + ex.getMethod() + "' is not supported for this endpoint."));
+    }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleGenericException(Exception ex) {

@@ -10,10 +10,12 @@ import com.lilo.service.VideoService;
 import com.lilo.service.FileStorageService;
 import com.lilo.shared.WebConstants;
 import com.lilo.shared.annotations.AllowedValues;
+import com.lilo.shared.annotations.ValidMultipartFile;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
@@ -22,6 +24,7 @@ import org.springframework.data.domain.Sort.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -89,10 +92,9 @@ public class VideoController extends BaseController {
 
 	@PostMapping
 	public ResponseEntity<?> uploadVideo(@RequestHeader("Authorization") String authorizationHeader,
-                                         @RequestPart MultipartFile multipartFile,
-                                         @RequestPart String videoName)
+                                         @RequestPart String videoName,
+                                         @RequestPart @ValidMultipartFile(allowedTypes = "video/mp4", invalidFileTypeMessage = "Invalid file type. Allowed types are video/mp4") MultipartFile multipartFile)
             throws IOException {
-
         long authenticatedUserId = authService.getUserId(authorizationHeader);
 
         Video newVideo = videoService.save(multipartFile, authenticatedUserId, videoName);
