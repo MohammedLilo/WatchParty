@@ -13,15 +13,18 @@ public class UserOutputDTO {
 	private String name;
 	private String phoneNumber;
 	private String partyId;
+    private String profilePictureUrl;
 
-	private UserOutputDTO(User user) {
+	private UserOutputDTO(User user, String profilePictureUrl) {
 		this.id = user.getId();
 		this.email = user.getEmail();
 		this.name = user.getName();
 		this.phoneNumber = user.getPhoneNumber();
 		this.partyId = user.getPartyId();
+        this.profilePictureUrl = profilePictureUrl;
+
 	}
-public static UserOutputDTO fromUser(User user) {
-        return new UserOutputDTO(user);
+public static UserOutputDTO fromUser(User user, String profilePictureUrl) {
+        return new UserOutputDTO(user, profilePictureUrl);
 }
 }

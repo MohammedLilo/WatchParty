@@ -37,7 +37,15 @@ public class UserController extends BaseController {
 
 	@GetMapping("/me")
 	public ResponseEntity<?> getUserOwnData(@AuthenticationPrincipal User authenticatedUser) {
-		return  buildSuccessResponse(UserOutputDTO.fromUser(authenticatedUser));
+        String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
+        String path = WebConstants.profilePictureUrlPattern.replace("**", "");
+        String profilePictureUrl = String.format("%s%s%s",
+                baseUrl,
+                path,
+                authenticatedUser.getProfilePicture()
+        );
+
+		return  buildSuccessResponse(UserOutputDTO.fromUser(authenticatedUser, profilePictureUrl));
 	}
 
     @PatchMapping

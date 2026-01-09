@@ -18,9 +18,9 @@ public class VideoOutputDTO {
     private VideoOutputDTO(Video video,  String videoUrl) {
         this.videoUrl = videoUrl;
         this.videoName = video.getVideoName();
-        this.userId = video.getUser().getId();
+        this.userId = (video.getUser() != null)? video.getUser().getId() : -1;
         this.timestamp = video.getTimestamp();
-        this.ownerFullName = video.getUser().getName();
+        this.ownerFullName = (video.getUser() != null)? video.getUser().getName() : null;
     }
     public static  VideoOutputDTO fromVideo(Video video, String baseUrl) {
         String path = WebConstants.videosUrlPattern.replace("**", "");

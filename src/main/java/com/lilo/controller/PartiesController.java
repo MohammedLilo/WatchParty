@@ -9,6 +9,7 @@ import com.lilo.enums.PartyMemberEvent;
 import com.lilo.model.*;
 import com.lilo.model.dto.*;
 import com.lilo.operationResult.TableOperationResult;
+import com.lilo.service.DefaultUserProfilePictureService;
 import com.lilo.service.PartiesService;
 import com.lilo.service.PartyMessageService;
 import com.lilo.shared.WebConstants;
@@ -47,7 +48,7 @@ public class PartiesController extends BaseController {
     private final SimpMessagingTemplate simpMessagingTemplate;
     private final Map<String, PartyDetailTuple> partyDetailTupleMap = new HashMap<>();
     private final PartyMessageService partyMessageService;
-
+    private final DefaultUserProfilePictureService defaultUserProfilePictureService;
 //	@PreDestroy
 //	void deleteAllPartiesFromDatabase() {
 //		userService.nullifyPartyIdForAllUsers();
@@ -117,7 +118,7 @@ public class PartiesController extends BaseController {
         String profilePicturesUrl = String.format("%s%s", baseUrl, WebConstants.profilePictureUrlPattern.replace("**", ""));
 
         Page<PartyMessageOutputDTO> partyMessages = partyMessageService.findByPartyId(partyId, pageNumber, size, Sort.by(Sort.Order.desc("createdAt")))
-                .map(pm -> PartyMessageOutputDTO.fromPartyMessage(pm, String.format("%s%s", profilePicturesUrl, pm.getUser().getProfilePicture())));
+                .map(pm -> PartyMessageOutputDTO.fromPartyMessage(pm, String.format("%s%s", profilePicturesUrl, (pm.getUser() != null)? pm.getUser().getProfilePicture() : defaultUserProfilePictureService.findRandomly().get().getPictureFileName())));
         return buildSuccessResponse(partyMessages);
     }
 

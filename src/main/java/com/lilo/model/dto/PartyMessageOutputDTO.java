@@ -18,14 +18,14 @@ public class PartyMessageOutputDTO {
     private PartyMessageOutputDTO(PartyMessage partyMessage, String profilePictureUrl) {
         id = partyMessage.getId();
         partyId = partyMessage.getPartyId();
-        userId = partyMessage.getUser().getId();
+        userId = (partyMessage.getUser() != null) ? partyMessage.getUser().getId() : -1;
         content = partyMessage.getContent();
-        senderName = partyMessage.getSenderName();
+        senderName = (partyMessage.getUser() != null) ? partyMessage.getSenderName() : null;
         createdAt = partyMessage.getCreatedAt();
         this.profilePictureUrl = profilePictureUrl;
     }
 
     public static PartyMessageOutputDTO fromPartyMessage(PartyMessage partyMessage, String profilePictureUrl) {
-        return new PartyMessageOutputDTO(partyMessage,  profilePictureUrl);
+        return new PartyMessageOutputDTO(partyMessage, profilePictureUrl);
     }
 }
