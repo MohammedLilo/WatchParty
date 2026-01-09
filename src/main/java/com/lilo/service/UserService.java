@@ -29,4 +29,6 @@ public interface UserService {
     Optional<User> findFirstByPartyIdOrderByJoinTime(String partyId);
     List<User> findAllByPartyIdOrderByJoinTime(String partyId);
     void updateProfilePicture(User user, MultipartFile multipartFile) throws IOException;
+
+    void delete(User authenticatedUser);
 }

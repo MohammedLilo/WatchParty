@@ -29,8 +29,8 @@ public class FileStorageService {
 		return new FileSystemResource(ROOT.resolve(fileName));
 	}
 
-	public void delete(String videoFileName) throws IOException {
+	public void delete(String fileName) throws IOException {
 //		FileUtils.forceDelete(this.ROOT.resolve(name).toFile());
-		Files.deleteIfExists(ROOT.resolve(videoFileName));
+		Files.deleteIfExists(ROOT.resolve(fileName));
 	}
 }

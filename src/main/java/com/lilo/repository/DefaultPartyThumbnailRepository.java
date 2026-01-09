@@ -11,4 +11,6 @@ import java.util.Optional;
 public interface DefaultPartyThumbnailRepository extends JpaRepository<DefaultPartyThumbnail, Long> {
     @Query(value = "SELECT * FROM default_party_thumbnails ORDER BY RAND() LIMIT 1", nativeQuery = true)
     Optional<DefaultPartyThumbnail> findRandomly();
+
+    boolean existsByThumbnailFileName(String thumbnailFileName);
 }

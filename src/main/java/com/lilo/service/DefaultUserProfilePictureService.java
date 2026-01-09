@@ -15,4 +15,8 @@ public class DefaultUserProfilePictureService {
     public Optional<DefaultUserProfilePicture> findRandomly() {
         return defaultUserProfilePictureRepository.findRandomly();
     }
+
+    public boolean existsByFileName(String pictureFileName) {
+        return defaultUserProfilePictureRepository.existsByPictureFileName(pictureFileName);
+    }
 }

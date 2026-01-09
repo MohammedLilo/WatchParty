@@ -1,7 +1,9 @@
 package com.lilo.service;
 
+import com.lilo.model.DefaultUserProfilePicture;
 import com.lilo.model.dto.UserInputDTO;
 import com.lilo.operationResult.TableOperationResult;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -18,11 +20,13 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final FileStorageService fileStorageService;
+    private final DefaultUserProfilePictureService defaultUserProfilePictureService;
     @Override
     public Optional<User> findById(long id) {
         return userRepository.findById(id);
@@ -75,7 +79,7 @@ public class UserServiceImpl implements UserService {
 
         if (emailChanging && userRepository.existsByEmail(targetUser.getEmail()))
             return TableOperationResult.fromFailure("Email is already taken", HttpStatus.CONFLICT.value());
-        
+
         if (phoneChanging && userRepository.existsByPhoneNumber(targetUser.getPhoneNumber()))
             return TableOperationResult.fromFailure("Phone number is already taken", HttpStatus.CONFLICT.value());
 
@@ -103,5 +107,15 @@ public class UserServiceImpl implements UserService {
         userRepository.deleteById(id);
     }
 
-
+    @Override
+    public void delete(User user) {
+        userRepository.delete(user);
+        if (!defaultUserProfilePictureService.existsByFileName(user.getProfilePicture())) {
+            try {
+                fileStorageService.delete(user.getProfilePicture());
+            } catch (IOException e) {
+                log.error("Error during user clean up. Could not delete file {}", user.getProfilePicture(), e);
+            }
+        }
+    }
 }

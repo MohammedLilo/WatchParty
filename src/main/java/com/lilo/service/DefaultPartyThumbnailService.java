@@ -12,7 +12,11 @@ import java.util.Optional;
 public class DefaultPartyThumbnailService {
     private final DefaultPartyThumbnailRepository defaultPartyThumbnailRepository;
 
-    public Optional<DefaultPartyThumbnail> findRandomly(){
+    public Optional<DefaultPartyThumbnail> findRandomly() {
         return defaultPartyThumbnailRepository.findRandomly();
+    }
+
+    public boolean existsByFileName(String thumbnailFileName) {
+        return defaultPartyThumbnailRepository.existsByThumbnailFileName(thumbnailFileName);
     }
 }

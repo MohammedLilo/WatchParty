@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -82,6 +83,13 @@ public class PartiesService {
 
         if (nextCandidatePartyOwner == null) {
             partiesRepository.deleteById(partyId);
+            if(! defaultPartyThumbnailService.existsByFileName(storedParty.getThumbnailFileName())) {
+                try {
+                    fileStorageService.delete(storedParty.getThumbnailFileName());
+                } catch (IOException e) {
+                    log.error("Error during party clean up. Could not delete file {}", storedParty.getThumbnailFileName(), e);
+                }
+            }
             log.info("Deleting party {}  because no members remained after owner left.", partyId);
         } else {
             storedParty.setOwnerUserId(nextCandidatePartyOwner.getId());

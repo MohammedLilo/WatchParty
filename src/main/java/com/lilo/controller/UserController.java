@@ -70,7 +70,8 @@ public class UserController extends BaseController {
 
     @DeleteMapping
 	public ResponseEntity<?> deleteUserAccount(@AuthenticationPrincipal User authenticatedUser, HttpServletRequest request) throws ServletException {
-        userService.deleteById(authenticatedUser.getId());
+//        userService.deleteById(authenticatedUser.getId());
+        userService.delete(authenticatedUser);
         request.logout();
 		return ResponseEntity.noContent().build();
 	}
