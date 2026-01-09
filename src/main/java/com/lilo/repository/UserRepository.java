@@ -1,5 +1,7 @@
 package com.lilo.repository;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -24,4 +26,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findFirstByPartyIdOrderByPartyJoinTimeAsc(String partyId);
 
     List<User> findAllByPartyIdOrderByPartyJoinTime(String partyId);
+
+    boolean existsByEmail(String email);
+
+    boolean existsByPhoneNumber(String phoneNumber);
 }

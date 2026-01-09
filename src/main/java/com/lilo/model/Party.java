@@ -1,9 +1,6 @@
 package com.lilo.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -44,10 +41,15 @@ public class Party {
 
     @Column(name = "thumbnail_file_name")
     private String thumbnailFileName;
-    public Party(long ownerUserId, String partyName) {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "owner_user_id",insertable = false, updatable = false, foreignKey = @ForeignKey(name = "fk_watch_parties_user"))
+    private User user;
+    public Party(long ownerUserId, String partyName, User ownerUser) {
         this.id = UUID.randomUUID().toString();
         this.ownerUserId = ownerUserId;
         this.name = partyName;
         this.createdAt = Instant.now();
+        this.user = ownerUser;
     }
 }

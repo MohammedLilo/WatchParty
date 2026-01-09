@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -65,8 +66,18 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public TableOperationResult update(User user, UserInputDTO targetUser) {
-        if (userRepository.existsByEmailOrPhoneNumber(targetUser.getEmail(), targetUser.getPhoneNumber()))
-            return TableOperationResult.fromFailure("this email or phone number is already taken", HttpStatus.CONFLICT.value());
+        boolean emailChanging = !Objects.equals(user.getEmail(), targetUser.getEmail());
+        boolean phoneChanging = !Objects.equals(user.getPhoneNumber(), targetUser.getPhoneNumber());
+        boolean nameChanging = !Objects.equals(user.getName(), targetUser.getFullName());
+
+        if (!emailChanging && !phoneChanging && !nameChanging)
+            return TableOperationResult.fromSuccess();
+
+        if (emailChanging && userRepository.existsByEmail(targetUser.getEmail()))
+            return TableOperationResult.fromFailure("Email is already taken", HttpStatus.CONFLICT.value());
+        
+        if (phoneChanging && userRepository.existsByPhoneNumber(targetUser.getPhoneNumber()))
+            return TableOperationResult.fromFailure("Phone number is already taken", HttpStatus.CONFLICT.value());
 
         user.setEmail(targetUser.getEmail());
         user.setPhoneNumber(targetUser.getPhoneNumber());

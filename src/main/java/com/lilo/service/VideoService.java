@@ -39,7 +39,7 @@ public class VideoService {
     }
 
     public Video save(MultipartFile multipartFile, long userId, String videoName) throws IOException {
-        String fileName = UUID.randomUUID().toString() + ".mp4";
+        String fileName = UUID.randomUUID().toString();// + ".mp4";
         fileStorageService.save(fileName, multipartFile);
         return videoRepository.save(new Video(fileName, videoName, userId, LocalDateTime.now()));
     }

@@ -131,7 +131,7 @@ public class PartiesController extends BaseController {
         if (authenticatedUser.getPartyId() != null)
             return buildErrorResponse(HttpStatus.CONFLICT, "User is already in a party");
 
-        Party newParty = new Party(authenticatedUser.getId(), partyName);
+        Party newParty = new Party(authenticatedUser.getId(), partyName, authenticatedUser);
         TableOperationResult partySavingResult = partiesService.save(newParty, thumbnailMultipartFile);
         if (!partySavingResult.isSuccess())
             return buildErrorResponse(new ApiError(partySavingResult.getSuggestedStatusCode(), partySavingResult.getErrorMessage()));

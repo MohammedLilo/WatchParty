@@ -10,6 +10,7 @@ import java.time.Instant;
 public class PartySummaryDTO {
     private String id;
     private long ownerUserId;
+    private String OwnerName;
     private String name;
     @JsonProperty("isPrivate")
     private boolean isPrivate;
@@ -18,6 +19,7 @@ public class PartySummaryDTO {
     private PartySummaryDTO(Party party, String thumbnailUrl) {
     this.id = party.getId();
     this.ownerUserId = party.getOwnerUserId();
+    this.OwnerName = party.getUser().getName();
     this.name = party.getName();
     this.isPrivate = party.isPrivate();
     this.createdAt = party.getCreatedAt();

@@ -93,7 +93,7 @@ public class VideoController extends BaseController {
 	@PostMapping
 	public ResponseEntity<?> uploadVideo(@RequestHeader("Authorization") String authorizationHeader,
                                          @RequestPart String videoName,
-                                         @RequestPart @ValidMultipartFile(allowedTypes = "video/mp4", invalidFileTypeMessage = "Invalid file type. Allowed types are video/mp4") MultipartFile multipartFile)
+                                         @RequestPart @ValidMultipartFile(allowedTypes = "video/*", invalidFileTypeMessage = "Invalid file type. Allowed types are video/mp4") MultipartFile multipartFile)
             throws IOException {
         long authenticatedUserId = authService.getUserId(authorizationHeader);
 
