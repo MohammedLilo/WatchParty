@@ -349,7 +349,13 @@
                 // Refresh list if someone else joined/left
                 if (event.userId !== currentUser.id) refreshMembersList();
             });
+            stompClient.subscribe('/user/queue/errors', (message) => {
+                const errorMessage = message.body;
+                console.error("Received error from server:", errorMessage);
 
+                // Handle the error in your UI (e.g., show a toast notification)
+                alert("Server Error: " + errorMessage);
+            });
         }, (err) => setTimeout(connectWebSocket, 3000));
     }
 

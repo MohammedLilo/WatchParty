@@ -15,6 +15,7 @@ import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 
@@ -24,6 +25,7 @@ import org.springframework.stereotype.Controller;
 public class PartiesWebsocketController {
     private final PartiesService partiesService;
     private final ObjectMapper objectMapper;
+    private final SimpMessagingTemplate simpMessagingTemplate;
 
     @MessageMapping("/party/{id}")
 //    @SendTo("/topic/party.{id}")
@@ -33,6 +35,11 @@ public class PartiesWebsocketController {
         User authenticatedUser = (User) authentication.getPrincipal();
         Party storedParty = partiesService.findPartyById(id);
 
+        if(! authenticatedUser.getId().equals(storedParty.getOwnerUserId())) {
+            log.info("User {} is not the owner of the party. Ignoring the {} event", authenticatedUser.getId(), partySyncEventInputDTO.getEvent());
+            simpMessagingTemplate.convertAndSendToUser(authenticatedUser.getEmail(), WebSocketConstants.QUEUE_ERRORS,"You are not the owner of this party.");
+            return null;
+        }
         PartySyncEventOutputDTO newPartySyncEventOutputDTO;
         PartySyncEventOutputDTO previousPartySyncEventOutputDTO = (storedParty.getLatestSyncEventJsonPayload() != null) ? objectMapper.readValue(storedParty.getLatestSyncEventJsonPayload(), PartySyncEventOutputDTO.class) : null;
         PartySyncEventOutputDTO earliestPartySyncEventOutputDTO = (previousPartySyncEventOutputDTO != null && previousPartySyncEventOutputDTO.getPreviousSyncEventJsonPayload() != null) ? previousPartySyncEventOutputDTO.getPreviousSyncEventJsonPayload() : null;
