@@ -36,3 +36,4 @@ build/
 uploads/
 
 /src/main/resources/local.application.properties
+/.env
