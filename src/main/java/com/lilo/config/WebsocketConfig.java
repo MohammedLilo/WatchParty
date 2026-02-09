@@ -3,6 +3,7 @@ package com.lilo.config;
 import com.lilo.interceptors.AuthHandshakeInterceptor;
 import com.lilo.interceptors.SubscriptionInterceptor;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.messaging.simp.config.ChannelRegistration;
@@ -25,6 +26,8 @@ import static com.lilo.shared.WebSocketConstants.*;
 public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
     private final AuthHandshakeInterceptor authHandshakeInterceptor;
     private final SubscriptionInterceptor subscriptionInterceptor;
+    @Value("${app.stomp-broker-relay-host}")
+    private String stompBrokerRelayHost;
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
@@ -48,7 +51,8 @@ public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
     public void configureMessageBroker(MessageBrokerRegistry registry) {
         registry.enableStompBrokerRelay(TOPIC_PARTY/*, TOPIC_PARTY_MEMBERS_COUNT*/, TOPIC_PARTY_CHAT, TOPIC_PARTY_MEMBER_EVENTS, QUEUE_ERRORS)
 //        registry.enableSimpleBroker(TOPIC_PARTIES, TOPIC_WATCH_PARTY_MEMBERS_COUNT, TOPIC_CHAT);
-                .setRelayHost("localhost")
+//                .setRelayHost("localhost")
+                .setRelayHost(stompBrokerRelayHost)
                 .setRelayPort(61613);
         registry.setApplicationDestinationPrefixes("/app");
         registry.setUserDestinationPrefix("/user");
