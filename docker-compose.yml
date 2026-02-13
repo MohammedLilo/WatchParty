@@ -32,9 +32,11 @@ services:
 
   app:
     build: .
-    container_name: watch-party-app
-    ports:
-      - "8081:8081"
+    deploy:
+      replicas: 3
+#    container_name: watch-party-app
+#    ports:
+#      - "8081:8081"
     depends_on:
       mariadb:
         condition: service_healthy
@@ -46,6 +48,17 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
       APP_STOMP_BROKER_RELAY_HOST: ${STOMP_HOST}
       JWT_SECRET: ${JWT_SECRET_KEY}
+
+  gateway:
+    image: nginx:1-alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      app:
+        condition: service_started
+
 volumes:
   mariadb_data:
     external: true
