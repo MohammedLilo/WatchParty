@@ -118,6 +118,13 @@
             <artifactId>tika-core</artifactId>
             <version>3.2.3</version>
         </dependency>
+        <!-- Source: https://mvnrepository.com/artifact/org.zalando/logbook-spring-boot-starter -->
+        <dependency>
+            <groupId>org.zalando</groupId>
+            <artifactId>logbook-spring-boot-starter</artifactId>
+            <version>4.0.2</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
 	<build>
