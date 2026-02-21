@@ -4,6 +4,7 @@ package com.lilo.controller;
 import com.lilo.model.dto.ApiResponse;
 import com.lilo.model.dto.UserInputDTO;
 import com.lilo.operationResult.TableOperationResult;
+import com.lilo.service.FileStorageService;
 import com.lilo.shared.WebConstants;
 import com.lilo.shared.annotations.ValidMultipartFile;
 import jakarta.validation.Valid;
@@ -34,18 +35,11 @@ import java.net.URI;
 @Slf4j
 public class UserController extends BaseController {
 	private final UserService userService;
+    private final FileStorageService fileStorageService;
 
 	@GetMapping("/me")
 	public ResponseEntity<?> getUserOwnData(@AuthenticationPrincipal User authenticatedUser) {
-        String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
-        String path = WebConstants.profilePictureUrlPattern.replace("**", "");
-        String profilePictureUrl = String.format("%s%s%s",
-                baseUrl,
-                path,
-                authenticatedUser.getProfilePicture()
-        );
-
-		return  buildSuccessResponse(UserOutputDTO.fromUser(authenticatedUser, profilePictureUrl));
+		return  buildSuccessResponse(UserOutputDTO.fromUser(authenticatedUser, fileStorageService.getDownloadUrl(authenticatedUser.getProfilePicture())));
 	}
 
     @PatchMapping
@@ -66,19 +60,14 @@ public class UserController extends BaseController {
                                                @AuthenticationPrincipal User authenticatedUser
                                                ) throws IOException {
         userService.updateProfilePicture(authenticatedUser,  profilePictureMultipartFile);
-        String path = WebConstants.profilePictureUrlPattern.replace("**", "");
-        URI location = ServletUriComponentsBuilder.fromCurrentContextPath()
-                .path(path)
-                .path(authenticatedUser.getProfilePicture())
-                .build()
-                .toUri();
+        URI location = URI.create(fileStorageService.getDownloadUrl(authenticatedUser.getProfilePicture()));
+
         return ResponseEntity.created(location)
                 .body(ApiResponse.withSuccess("Profile Picture updated successfully!"));
     }
 
     @DeleteMapping
 	public ResponseEntity<?> deleteUserAccount(@AuthenticationPrincipal User authenticatedUser, HttpServletRequest request) throws ServletException {
-//        userService.deleteById(authenticatedUser.getId());
         userService.delete(authenticatedUser);
         request.logout();
 		return ResponseEntity.noContent().build();

@@ -9,9 +9,7 @@ import com.lilo.enums.PartyMemberEvent;
 import com.lilo.model.*;
 import com.lilo.model.dto.*;
 import com.lilo.operationResult.TableOperationResult;
-import com.lilo.service.DefaultUserProfilePictureService;
-import com.lilo.service.PartiesService;
-import com.lilo.service.PartyMessageService;
+import com.lilo.service.*;
 import com.lilo.shared.WebConstants;
 import com.lilo.shared.WebSocketConstants;
 import com.lilo.shared.annotations.AllowedValues;
@@ -28,8 +26,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
-
-import com.lilo.service.UserService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -49,6 +45,7 @@ public class PartiesController extends BaseController {
     private final Map<String, PartyDetailTuple> partyDetailTupleMap = new HashMap<>();
     private final PartyMessageService partyMessageService;
     private final DefaultUserProfilePictureService defaultUserProfilePictureService;
+    private final FileStorageService fileStorageService;
 //	@PreDestroy
 //	void deleteAllPartiesFromDatabase() {
 //		userService.nullifyPartyIdForAllUsers();
@@ -72,9 +69,8 @@ public class PartiesController extends BaseController {
                                         @RequestParam(name = "size", defaultValue = "10") int size,
                                         @RequestParam(name = "sortBy", defaultValue = "createdAt") @AllowedValues(values = {"createdAt"}) String sortBy) {
 
-        String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
         Page<PartySummaryDTO> storedParties = partiesService.getParties(pageNumber, size, Sort.by(Sort.Order.desc(sortBy)))
-                .map(p-> PartySummaryDTO.fromParty(p, baseUrl));
+                                                            .map(p-> PartySummaryDTO.fromParty(p, fileStorageService.getDownloadUrl(p.getThumbnailFileName())));
         return ResponseEntity.ok(storedParties);
     }
     @PatchMapping("/join")
@@ -101,7 +97,6 @@ public class PartiesController extends BaseController {
             return buildErrorResponse(HttpStatus.FORBIDDEN, "User is not a member of this party");
 
         PartyDetailsDTO partyDetails = partiesService.getPartyDetails(partyId);
-//        return ResponseEntity.ok(partyDetails);
         return buildSuccessResponse(partyDetails);
     }
 
@@ -114,11 +109,10 @@ public class PartiesController extends BaseController {
         if (authenticatedUser.getPartyId() == null || !authenticatedUser.getPartyId().equals(partyId))
             return buildErrorResponse(HttpStatus.FORBIDDEN, "User is not a member of this party");
 
-        String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
-        String profilePicturesUrl = String.format("%s%s", baseUrl, WebConstants.profilePictureUrlPattern.replace("**", ""));
+
 
         Page<PartyMessageOutputDTO> partyMessages = partyMessageService.findByPartyId(partyId, pageNumber, size, Sort.by(Sort.Order.desc("createdAt")))
-                .map(pm -> PartyMessageOutputDTO.fromPartyMessage(pm, String.format("%s%s", profilePicturesUrl, (pm.getUser() != null)? pm.getUser().getProfilePicture() : defaultUserProfilePictureService.findRandomly().get().getPictureFileName())));
+                                                                        .map(pm -> PartyMessageOutputDTO.fromPartyMessage(pm, fileStorageService.getDownloadUrl((pm.getUser() != null)? pm.getUser().getProfilePicture() : defaultUserProfilePictureService.findRandomly().get().getPictureFileName())));
         return buildSuccessResponse(partyMessages);
     }
 
@@ -144,9 +138,8 @@ public class PartiesController extends BaseController {
                 .fromMethodCall(on(PartiesController.class).getPartyDetails(newParty.getId(), null))
                 .build()
                 .toUri();
-        String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
 
-        return ResponseEntity.created(location).body(ApiResponse.withSuccess(PartySummaryDTO.fromParty(newParty, baseUrl)));
+        return ResponseEntity.created(location).body(ApiResponse.withSuccess(PartySummaryDTO.fromParty(newParty, fileStorageService.getDownloadUrl(newParty.getThumbnailFileName()))));
     }
 
     @DeleteMapping("/leave")

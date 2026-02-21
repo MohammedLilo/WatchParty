@@ -35,5 +35,7 @@ build/
 ### WatchParty Web App ###
 uploads/
 
-/src/main/resources/local.application.properties
+/src/main/resources/*.application.properties
+/src/main/resources/application-*.properties
 /.env
+watch-party.iml

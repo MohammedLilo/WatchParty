@@ -2,6 +2,8 @@ package com.lilo.shared;
 
 import lombok.Getter;
 
+import static com.lilo.shared.WebConstants.staticResourcesUrlPattern;
+
 public class SecurityConstants {
     @Getter
     private static String[] publicEndpoints = {//"/**",
@@ -10,9 +12,7 @@ public class SecurityConstants {
                                         , "/js/**", "/css/**", "/swagger-ui/**"
                                         ,"/v3/api-docs/**"
                                         ,"/ws/**"
-                                        ,WebConstants.thumbnailsUrlPattern
-                                        ,WebConstants.videosUrlPattern
-                                        ,WebConstants.profilePictureUrlPattern
+                                        ,staticResourcesUrlPattern
                                         };
 
 }

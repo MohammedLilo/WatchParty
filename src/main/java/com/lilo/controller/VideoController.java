@@ -30,6 +30,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import software.amazon.awssdk.crt.io.Uri;
 
 import java.io.IOException;
 import java.net.URI;
@@ -65,6 +66,7 @@ public class VideoController extends BaseController {
                     )
             )
     })
+    @Deprecated
     @GetMapping(value = "/{fileName}", produces = { "video/*", MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<?> loadVideo(@PathVariable("fileName") String fileName) {
         System.out.println("Loading video: " + fileName);
@@ -83,10 +85,8 @@ public class VideoController extends BaseController {
                                         @RequestParam(name = "size", defaultValue = "6") int size,
                                         @RequestParam(name = "sortBy", defaultValue = "timestamp") @AllowedValues(values = {"timestamp","videoName"}) String sortBy) {
 
-        String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
-
         Page<VideoOutputDTO> storedVideosPage = videoService.findAll(pageNumber, size, Sort.by(Order.desc(sortBy)))
-                                                            .map(v-> VideoOutputDTO.fromVideo(v, baseUrl));
+                                                            .map(v-> VideoOutputDTO.fromVideo(v, fileStorageService.getDownloadUrl(v.getVideoFileName())));
         return ResponseEntity.ok(storedVideosPage);
     }
 
@@ -100,15 +100,10 @@ public class VideoController extends BaseController {
         Video newVideo = videoService.save(multipartFile, authenticatedUserId, videoName);
         var response = ApiResponse.withSuccess("video uploaded successfully.");
 
-        String path = WebConstants.videosUrlPattern.replace("**", "");
-        URI location = ServletUriComponentsBuilder.fromCurrentContextPath()
-                .path(path)
-                .path(newVideo.getVideoFileName())
-                .build()
-                .toUri();
+        URI location = URI.create(fileStorageService.getDownloadUrl(newVideo.getVideoFileName()));
 
         return ResponseEntity.created(location)
-                .body(response);
+                             .body(response);
     }
 
 @DeleteMapping("/{fileName}")

@@ -3,6 +3,7 @@ package com.lilo.controller.websocket;
 import com.lilo.model.User;
 import com.lilo.model.dto.PartyMessageInputDTO;
 import com.lilo.model.dto.PartyMessageOutputDTO;
+import com.lilo.service.FileStorageService;
 import com.lilo.service.PartyMessageService;
 import com.lilo.shared.WebConstants;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,10 +28,7 @@ import static com.lilo.shared.WebSocketConstants.TOPIC_PARTY_CHAT;
 public class ChatsWebsocketController {
     private final SimpMessagingTemplate simpMessagingTemplate;
     private final PartyMessageService partyMessageService;
-    @Value("app.host")
-    private String host;
-    /// TODO
-    /// Add profile pictures for sender of the message
+    private final FileStorageService fileStorageService;
 
     @MessageMapping("/watchParty-chats/{id}")
 //	@SendTo("/topic/chat.{id}")
@@ -42,8 +40,7 @@ public class ChatsWebsocketController {
         User authenticatedUser = (User) authentication.getPrincipal();
         PartyMessage newPartyMessage = new PartyMessage(partyMessageInputDTO.getContent(), authenticatedUser.getName(), partyId, authenticatedUser);
 
-        String baseUrl = this.host;
-        String senderProfilePictureUrl = String.format("%s%s%s", baseUrl, WebConstants.profilePictureUrlPattern.replace("**", ""), authenticatedUser.getProfilePicture());
+        String senderProfilePictureUrl =  fileStorageService.getDownloadUrl(authenticatedUser.getProfilePicture());
 
         partyMessageService.save(newPartyMessage);
         simpMessagingTemplate.convertAndSend(TOPIC_PARTY_CHAT + "." + partyId, PartyMessageOutputDTO.fromPartyMessage(newPartyMessage, senderProfilePictureUrl));

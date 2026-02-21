@@ -48,7 +48,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
       APP_STOMP_BROKER_RELAY_HOST: ${STOMP_HOST}
       JWT_SECRET: ${JWT_SECRET_KEY}
-
+      SPRING_PROFILES_ACTIVE: uat
   gateway:
     image: nginx:1-alpine
     ports:

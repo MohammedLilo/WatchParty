@@ -25,14 +25,7 @@ public class PartySummaryDTO {
     this.createdAt = party.getCreatedAt();
     this.thumbnailUrl = thumbnailUrl;
     }
-public static PartySummaryDTO fromParty(Party party, String baseUrl) {
-    String path = WebConstants.thumbnailsUrlPattern.replace("**", "");
-    String thumbnailUrl = String.format("%s%s%s",
-            baseUrl,
-            WebConstants.thumbnailsUrlPattern.replace("**", ""),
-            party.getThumbnailFileName()
-    );
-
+public static PartySummaryDTO fromParty(Party party, String thumbnailUrl) {
     return new PartySummaryDTO(party, thumbnailUrl);
     }
 }

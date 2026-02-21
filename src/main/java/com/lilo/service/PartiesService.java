@@ -129,9 +129,9 @@ public class PartiesService {
                 .map(user -> new PartyMemberDTO(user.getId(), user.getName(), user.getPartyJoinTime()))
                 .toList();
 
-        String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
-        String path = WebConstants.thumbnailsUrlPattern.replace("**", "");
-        String thumbnailUrl = String.format("%s%s%s", baseUrl, path, storedParty.getThumbnailFileName());
+//        String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
+//        String path = WebConstants.thumbnailsUrlPattern.replace("**", "");
+//        String thumbnailUrl = String.format("%s%s%s", baseUrl, path, storedParty.getThumbnailFileName());
 
         return new PartyDetailsDTO(partyId,
                 storedParty.getName(),
@@ -140,7 +140,7 @@ public class PartiesService {
                 storedParty.getCurrentVideoUrl(),
                 storedParty.getLatestSyncEventJsonPayload(),
                 storedParty.isPrivate(),
-                thumbnailUrl,
+                fileStorageService.getDownloadUrl(storedParty.getThumbnailFileName()),
                 memberDTOs);
     }
 
