@@ -50,7 +50,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void updateProfilePicture(User user, MultipartFile multipartFile) throws IOException {
         String fileName = UUID.randomUUID().toString();
-        fileStorageService.save(fileName, multipartFile);
+        fileStorageService.save(fileName, multipartFile.getInputStream());
         user.setProfilePicture(fileName);
         userRepository.save(user);
     }

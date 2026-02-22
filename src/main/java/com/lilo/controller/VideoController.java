@@ -6,17 +6,17 @@ import com.lilo.model.dto.VideoOutputDTO;
 import com.lilo.operationResult.TableOperationResult;
 import com.lilo.security.AuthService;
 import com.lilo.service.UserService;
-import com.lilo.service.VideoService;
+import com.lilo.service.SimpleVideoService;
 import com.lilo.service.FileStorageService;
-import com.lilo.shared.WebConstants;
+import com.lilo.service.VideoService;
 import com.lilo.shared.annotations.AllowedValues;
 import com.lilo.shared.annotations.ValidMultipartFile;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
@@ -24,18 +24,12 @@ import org.springframework.data.domain.Sort.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import software.amazon.awssdk.crt.io.Uri;
 
 import java.io.IOException;
 import java.net.URI;
-
-import static org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder.on;
 
 @RequestMapping("/api/v1/videos")
 @RestController
@@ -46,7 +40,7 @@ public class VideoController extends BaseController {
 	private final FileStorageService fileStorageService;
 	private final UserService userService;
     private final AuthService authService;
-
+    private RabbitTemplate rabbitTemplate;
     @Operation(deprecated = true,summary = "Stream Video File by Name",
             description = "**⚠️ IMPORTANT:** Use the static serving endpoint instead <br><br> **Note:** This endpoint streams binary video data. Successful execution (200 OK) in Swagger UI will result in an 'Unable to Display' error. Use a browser or external tool to confirm video playback. The 404 error path can be tested safely here.")
     @ApiResponses(value = {
@@ -99,11 +93,9 @@ public class VideoController extends BaseController {
 
         Video newVideo = videoService.save(multipartFile, authenticatedUserId, videoName);
         var response = ApiResponse.withSuccess("video uploaded successfully.");
+//        URI location = URI.create(fileStorageService.getDownloadUrl(newVideo.getVideoFileName()));
 
-        URI location = URI.create(fileStorageService.getDownloadUrl(newVideo.getVideoFileName()));
-
-        return ResponseEntity.created(location)
-                             .body(response);
+        return ResponseEntity.accepted().body(response);
     }
 
 @DeleteMapping("/{fileName}")

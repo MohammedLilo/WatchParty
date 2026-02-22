@@ -5,16 +5,15 @@ import io.awspring.cloud.s3.S3Template;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.time.Duration;
 
 @Profile("uat")
@@ -33,16 +32,15 @@ public class S3FileStorageService implements FileStorageService {
     private int presignedUrlExpiration;
 
     @Override
-    public void save(String fileName, MultipartFile file) throws IOException {
+    public void save(String fileName, InputStream inputStream) throws IOException {
         try {
-            s3Template.upload(bucketName, fileName, file.getInputStream());
+            s3Template.upload(bucketName, fileName, inputStream);
         } catch (S3Exception e) {
             log.error("AWS S3 error message: {}", e.getMessage());
             log.error("AWS cause: ", e.getCause());
             throw e;
         }
     }
-
     @Override
     public Resource load(String fileName) {
         return s3Template.download(bucketName, fileName);

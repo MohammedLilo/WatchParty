@@ -1,6 +1,7 @@
 package com.lilo.service;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -26,8 +27,8 @@ public class LocalFileStorageService implements FileStorageService {
 		Files.createDirectories(ROOT);
 	}
 
-	public void save(String fileName, MultipartFile multipartFile) throws IOException {
-		Files.copy(multipartFile.getInputStream(), ROOT.resolve(fileName));
+	public void save(String fileName, InputStream inputStream) throws IOException {
+		Files.copy(inputStream, ROOT.resolve(fileName));
 	}
 
 	public Resource load(String fileName) {

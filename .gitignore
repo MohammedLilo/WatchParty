@@ -34,7 +34,7 @@ build/
 
 ### WatchParty Web App ###
 uploads/
-
+temp-uploads/*
 /src/main/resources/*.application.properties
 /src/main/resources/application-*.properties
 /.env

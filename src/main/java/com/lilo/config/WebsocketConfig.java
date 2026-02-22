@@ -49,7 +49,7 @@ public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-        registry.enableStompBrokerRelay(TOPIC_PARTY/*, TOPIC_PARTY_MEMBERS_COUNT*/, TOPIC_PARTY_CHAT, TOPIC_PARTY_MEMBER_EVENTS, QUEUE_ERRORS)
+        registry.enableStompBrokerRelay(TOPIC_PARTY/*, TOPIC_PARTY_MEMBERS_COUNT*/, TOPIC_PARTY_CHAT, TOPIC_PARTY_MEMBER_EVENTS, QUEUE_ERRORS, NOTIFICATIONS_QUEUE)
 //        registry.enableSimpleBroker(TOPIC_PARTIES, TOPIC_WATCH_PARTY_MEMBERS_COUNT, TOPIC_CHAT);
 //                .setRelayHost("localhost")
                 .setRelayHost(stompBrokerRelayHost)

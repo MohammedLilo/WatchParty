@@ -2,6 +2,7 @@ package com.lilo.repository;
 
 import java.util.List;
 
+import com.lilo.enums.VideoStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -35,4 +36,10 @@ public interface VideoRepository extends JpaRepository<Video, String> {
                     AND v.userId = :userId
                     """)
 int deleteIfUserIsOwner(@Param("fileName") String fileName, @Param("userId") long userId);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE Video v SET v.status = :status WHERE v.videoFileName = :videoFileName")
+    int updateStatus(String videoFileName, VideoStatus status);
+    Page<Video> findByStatus(VideoStatus status, Pageable pageable);
 }

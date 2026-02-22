@@ -44,7 +44,7 @@ public class PartiesService {
         if (multipartFile != null && !multipartFile.isEmpty()) {
             String fileName = UUID.randomUUID().toString();
             party.setThumbnailFileName(fileName);
-            fileStorageService.save(fileName, multipartFile);
+            fileStorageService.save(fileName, multipartFile.getInputStream());
         } else {
             DefaultPartyThumbnail defaultPartyThumbnail = defaultPartyThumbnailService.findRandomly().orElseThrow(() ->
                     new RuntimeException("CRITICAL ERROR: Default party thumbnail was not found")

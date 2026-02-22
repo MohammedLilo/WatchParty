@@ -200,7 +200,7 @@
     const TOPIC_CHAT_PREFIX = '/topic/chat.'; // TOPIC_PARTY_CHAT
     const TOPIC_VIDEO_PREFIX = '/topic/party.';
     const TOPIC_MEMBER_EVENTS = '/topic/member-events';
-
+    const NOTIFICATIONS_QUEUE = '/user/queue/notifications'
     // DOM elements
     const loginScreen = document.getElementById('login-screen');
     const partyScreen = document.getElementById('party-screen');
@@ -351,6 +351,12 @@
                 // Refresh list if someone else joined/left
                 if (event.userId !== currentUser.id) refreshMembersList();
             });
+            stompClient.subscribe(NOTIFICATIONS_QUEUE, (msg) => {
+                const event = JSON.parse(msg.body);
+                console.log(event)
+                const notificationText = `${event.message}: ${event.fileName}: accessible at ${event.fileUrl}`;
+                showNotification(notificationText, event.success);
+            });
             stompClient.subscribe('/user/queue/errors', (message) => {
                 const errorMessage = message.body;
                 console.error("Received error from server:", errorMessage);
@@ -455,6 +461,40 @@
         await fetch(`${API_BASE}/parties/leave`, { method: 'DELETE', headers: buildAuthHeader() });
         location.reload();
     };
+    // --- Notification Helper ---
+    function showNotification(message, isSuccess) {
+        // Create container if it doesn't exist
+        let container = document.getElementById('toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toast-container';
+            container.className = 'fixed bottom-4 right-4 z-[100] flex flex-col gap-2 pointer-events-none';
+            document.body.appendChild(container);
+        }
+
+        // Create the toast element
+        const toast = document.createElement('div');
+        // Green for success, Red for failure. Matches your existing UI styling.
+        const bgColor = isSuccess ? 'bg-green-500/90 border-green-400' : 'bg-red-500/90 border-red-400';
+
+        toast.className = `px-4 py-3 rounded-lg shadow-2xl text-white text-sm border backdrop-blur-md transform transition-all duration-300 translate-y-4 opacity-0 ${bgColor}`;
+        toast.textContent = message;
+
+        container.appendChild(toast);
+
+        // Animate in
+        requestAnimationFrame(() => {
+            toast.classList.remove('translate-y-4', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+        });
+
+        // Remove after 5 seconds
+        setTimeout(() => {
+            toast.classList.remove('translate-y-0', 'opacity-100');
+            toast.classList.add('translate-y-4', 'opacity-0');
+            setTimeout(() => toast.remove(), 300); // wait for fade out animation
+        }, 5000);
+    }
 </script>
 </body>
 </html>

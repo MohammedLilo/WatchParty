@@ -1,33 +1,23 @@
 package com.lilo.service;
 
-import java.io.IOException;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
+import com.lilo.enums.VideoStatus;
+import com.lilo.model.Video;
 import com.lilo.operationResult.TableOperationResult;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import com.lilo.repository.VideoRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.lilo.model.Video;
-import com.lilo.repository.VideoRepository;
-
-import lombok.RequiredArgsConstructor;
-
-@Service
+import java.io.IOException;
+import java.util.List;
+import java.util.Optional;
 @RequiredArgsConstructor
-@Slf4j
-public class VideoService {
-    private final VideoRepository videoRepository;
-    private final FileStorageService fileStorageService;
-    private final UserService userService;
+public abstract class VideoService {
+    protected final VideoRepository videoRepository;
+    protected final FileStorageService fileStorageService;
+
+    public abstract Video save(MultipartFile multipartFile, long userId, String videoName) throws IOException;
 
     public List<Video> findByUserId(long userId) {
         return videoRepository.findByUserId(userId);
@@ -35,15 +25,17 @@ public class VideoService {
 
     public Page<Video> findAll(int pageNumber, int pageSize, Sort sort) {
         Pageable pageable = PageRequest.of(pageNumber, pageSize, sort);
-        return videoRepository.findAll(pageable);
+//        return videoRepository.findAll(pageable);
+        return videoRepository.findByStatus(VideoStatus.READY, pageable);
     }
 
-    public Video save(MultipartFile multipartFile, long userId, String videoName) throws IOException {
-        String fileName = UUID.randomUUID().toString();// + ".mp4";
-        fileStorageService.save(fileName, multipartFile);
-        return videoRepository.save(new Video(fileName, videoName, userId, LocalDateTime.now()));
+    public Optional<Video> findByVideoFileName(String videoFileName) {
+        return videoRepository.findById(videoFileName);
     }
 
+    public int updateStatus(String videoFileName, VideoStatus videoStatus) {
+        return  videoRepository.updateStatus(videoFileName, videoStatus);
+    }
     public TableOperationResult deleteIfUserIsOwner(String videoFileName, long userId) {
         boolean isVideoExists = videoRepository.existsById(videoFileName);
         if (!isVideoExists)
@@ -57,10 +49,6 @@ public class VideoService {
         return TableOperationResult.fromSuccess();
     }
 
-    public Optional<Video> findByVideoFileName(String videoFileName) {
-        return videoRepository.findById(videoFileName);
-    }
-
     private void tryDeleteVideoFromStorage(String videoFileName) {
         try {
             fileStorageService.delete(videoFileName);
@@ -68,4 +56,5 @@ public class VideoService {
             System.err.println("CRITICAL: Failed to delete video file on storage. File remains: " + videoFileName);
         }
     }
+
 }
